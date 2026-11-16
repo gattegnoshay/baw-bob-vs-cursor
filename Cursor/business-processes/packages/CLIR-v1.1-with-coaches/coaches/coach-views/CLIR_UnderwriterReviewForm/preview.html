@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CLIR_UnderwriterReviewForm — Coach View Preview</title><style>
+.clir-uwr {
+  --ink: #142033;
+  --muted: #5b6b7c;
+  --line: #d5dee8;
+  --panel: #f7fafc;
+  --accent: #0f6e56;
+  --accent-dark: #0b5744;
+  --warn: #b54708;
+  --danger: #b42318;
+  --danger-bg: #fef3f2;
+  font-family: "IBM Plex Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color: var(--ink);
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 1.25rem;
+  background:
+    radial-gradient(circle at top left, rgba(15, 110, 86, 0.1), transparent 42%),
+    linear-gradient(180deg, #ffffff 0%, #f3f7f5 100%);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.clir-uwr__eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.clir-uwr__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.55rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.clir-uwr__subtitle {
+  margin: 0 0 1.1rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.clir-uwr__section {
+  margin-bottom: 1.15rem;
+  padding: 1rem 1.1rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.clir-uwr__section--edit {
+  background: #fff;
+}
+
+.clir-uwr__section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.clir-uwr__section-title {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.clir-uwr__pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: #e7eef7;
+  color: #1849a9;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.clir-uwr__pill--warn {
+  background: #fffaeb;
+  color: var(--warn);
+}
+
+.clir-uwr__cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.clir-uwr__card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.7rem 0.8rem;
+}
+
+.clir-uwr__card--wide {
+  grid-column: 1 / -1;
+}
+
+.clir-uwr__meta {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.clir-uwr__card strong {
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.clir-uwr__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem 1.1rem;
+}
+
+.clir-uwr__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.clir-uwr__field--full {
+  grid-column: 1 / -1;
+}
+
+.clir-uwr__label {
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.clir-uwr__input {
+  border: 1px solid #b8c4d4;
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.95rem;
+  background: #fff;
+}
+
+.clir-uwr__input:focus {
+  outline: 2px solid rgba(15, 110, 86, 0.25);
+  border-color: var(--accent);
+}
+
+.clir-uwr__input.is-invalid {
+  border-color: var(--danger);
+  background: #fff8f7;
+}
+
+.clir-uwr__textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.clir-uwr__banner {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.clir-uwr__banner--error {
+  border-left: 4px solid var(--danger);
+  background: var(--danger-bg);
+  color: #7a271a;
+}
+
+.clir-uwr__banner[hidden] {
+  display: none !important;
+}
+
+.clir-uwr__actions {
+  margin-top: 0.35rem;
+}
+
+.clir-uwr__btn {
+  border: 0;
+  border-radius: 6px;
+  padding: 0.6rem 1.15rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--accent);
+  color: #fff;
+}
+
+.clir-uwr__btn:hover {
+  background: var(--accent-dark);
+}
+
+@media (max-width: 760px) {
+  .clir-uwr__cards,
+  .clir-uwr__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .clir-uwr__card--wide {
+    grid-column: auto;
+  }
+}
+
+body{margin:0;background:#e9eef5}.preview-shell{max-width:980px;margin:0 auto;padding:1.5rem}.preview-note{margin-bottom:1rem;padding:.75rem 1rem;border-radius:8px;background:#fff;border:1px solid #d5dee8;color:#334155;font:14px/1.4 Segoe UI,sans-serif}.preview-debug{margin-top:1rem;padding:.75rem 1rem;border-radius:8px;background:#0f172a;color:#e2e8f0;font:12px/1.45 Consolas,monospace;white-space:pre-wrap}</style></head><body><div class="preview-shell"><div class="preview-note">Interactive preview of the <strong>CLIR_UnderwriterReviewForm</strong> Coach View component. Validation and binding sync run in a mock BAW context. Paste the same HTML/CSS/handlers into WebPD Coach View.</div><div id="coach-root">
+<div class="clir-uwr" data-coach-view="CLIR_UnderwriterReviewForm">
+  <header class="clir-uwr__header">
+    <p class="clir-uwr__eyebrow">Underwriter queue</p>
+    <h1 class="clir-uwr__title">Manual Credit Review</h1>
+    <p class="clir-uwr__subtitle">
+      Review the request and risk assessment, then record your decision.
+    </p>
+  </header>
+
+  <div class="clir-uwr__banner clir-uwr__banner--error" data-role="errors" hidden role="alert" aria-live="polite"></div>
+
+  <section class="clir-uwr__section" aria-labelledby="clir-uwr-customer-title">
+    <div class="clir-uwr__section-head">
+      <h2 id="clir-uwr-customer-title" class="clir-uwr__section-title">Customer Information</h2>
+      <span class="clir-uwr__pill">Read only</span>
+    </div>
+    <div class="clir-uwr__cards">
+      <div class="clir-uwr__card">
+        <span class="clir-uwr__meta">Customer ID</span>
+        <strong data-display="customer.customerID">â€”</strong>
+      </div>
+      <div class="clir-uwr__card">
+        <span class="clir-uwr__meta">Full Name</span>
+        <strong data-display="customer.fullName">â€”</strong>
+      </div>
+      <div class="clir-uwr__card">
+        <span class="clir-uwr__meta">Credit Score</span>
+        <strong data-display="customer.creditScore">â€”</strong>
+      </div>
+      <div class="clir-uwr__card">
+        <span class="clir-uwr__meta">Annual Income</span>
+        <strong data-display="customer.annualIncome">â€”</strong>
+      </div>
+      <div class="clir-uwr__card">
+        <span class="clir-uwr__meta">Current Limit</span>
+        <strong data-display="customer.currentLimit">â€”</strong>
+      </div>
+      <div class="clir-uwr__card">
+        <span class="clir-uwr__meta">Requested Limit</span>
+        <strong data-display="customer.requestedIncrease">â€”</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="clir-uwr__section" aria-labelledby="clir-uwr-risk-title">
+    <div class="clir-uwr__section-head">
+      <h2 id="clir-uwr-risk-title" class="clir-uwr__section-title">Risk Assessment</h2>
+      <span class="clir-uwr__pill clir-uwr__pill--warn" data-display="risk.riskLevel">HIGH_RISK</span>
+    </div>
+    <div class="clir-uwr__cards">
+      <div class="clir-uwr__card">
+        <span class="clir-uwr__meta">Auto Approved</span>
+        <strong data-display="risk.autoApproved">â€”</strong>
+      </div>
+      <div class="clir-uwr__card">
+        <span class="clir-uwr__meta">Assessed</span>
+        <strong data-display="risk.assessedDate">â€”</strong>
+      </div>
+      <div class="clir-uwr__card clir-uwr__card--wide">
+        <span class="clir-uwr__meta">Risk Reason</span>
+        <strong data-display="risk.riskReason">â€”</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="clir-uwr__section clir-uwr__section--edit" aria-labelledby="clir-uwr-decision-title">
+    <h2 id="clir-uwr-decision-title" class="clir-uwr__section-title">Underwriter Decision</h2>
+    <div class="clir-uwr__grid">
+      <div class="clir-uwr__field">
+        <label class="clir-uwr__label" for="clir-uwr-status">Decision</label>
+        <select class="clir-uwr__input" id="clir-uwr-status" data-field="status">
+          <option value="">Select...</option>
+          <option value="APPROVED">Approved</option>
+          <option value="REJECTED">Rejected</option>
+        </select>
+      </div>
+
+      <div class="clir-uwr__field">
+        <label class="clir-uwr__label" for="clir-uwr-amount">Approved Amount</label>
+        <input class="clir-uwr__input" id="clir-uwr-amount" type="number" min="0" step="0.01"
+               data-field="approvedAmount" />
+      </div>
+
+      <div class="clir-uwr__field clir-uwr__field--full">
+        <label class="clir-uwr__label" for="clir-uwr-comments">Approver Comments</label>
+        <textarea class="clir-uwr__input clir-uwr__textarea" id="clir-uwr-comments"
+                  data-field="approverComments" rows="4"></textarea>
+      </div>
+
+      <div class="clir-uwr__field clir-uwr__field--full">
+        <label class="clir-uwr__label" for="clir-uwr-processedBy">Processed By</label>
+        <input class="clir-uwr__input" id="clir-uwr-processedBy" type="text" data-field="processedBy" />
+      </div>
+    </div>
+  </section>
+
+  <div class="clir-uwr__actions">
+    <button type="button" class="clir-uwr__btn" data-action="complete">Complete Review</button>
+  </div>
+</div>
+
+</div><pre class="preview-debug" id="debug"></pre></div><script>(function(){var store={"value":{"status":"","approvedAmount":null,"approverComments":"","processedBy":"j.underwriter","processedDate":null}};var optionStore={"customerInfo":{"customerID":"CUST-9942","fullName":"Alex Rivera","creditScore":720,"annualIncome":40000,"currentLimit":25000,"requestedIncrease":30000,"status":"IN_REVIEW"},"riskAssessment":{"riskLevel":"HIGH_RISK","autoApproved":false,"riskReason":"High exposure ratio","assessedDate":"2026-10-04T12:00:00Z","status":"COMPLETE"}};function makeBinding(objRef){return{get:function(key){return key==="value"?objRef.value:undefined;},set:function(key,val){if(key==="value"){objRef.value=val;refreshDebug();}}}};function makeOptions(map){var out={};Object.keys(map).forEach(function(k){out[k]={get:function(key){return key==="value"?map[k]:undefined;}};});return out;}var ctx={element:document.querySelector("#coach-root [data-coach-view]"),binding:makeBinding(store),options:makeOptions(optionStore)};function refreshDebug(){document.getElementById("debug").textContent="binding.value = "+JSON.stringify(store.value,null,2)+"\n\noptions = "+JSON.stringify(optionStore,null,2);}var api={context:ctx};api.change=function(){(/**
+ * CLIR Underwriter Review Form â€” Coach View change handler
+ */
+(function () {
+  var root = this.context.element;
+  var binding = this.context.binding;
+  var data = (binding && binding.get) ? (binding.get("value") || {}) : {};
+
+  function read(name) {
+    var input = root.querySelector('[data-field="' + name + '"]');
+    return input ? input.value : "";
+  }
+
+  data.status = String(read("status") || "").toUpperCase();
+  var amount = read("approvedAmount");
+  data.approvedAmount = amount === "" ? null : Number(amount);
+  data.approverComments = String(read("approverComments") || "").replace(/^\s+|\s+$/g, "");
+  data.processedBy = String(read("processedBy") || "").replace(/^\s+|\s+$/g, "");
+
+  if (binding && binding.set) {
+    binding.set("value", data);
+  }
+}).call(api);refreshDebug();};api.validate=function(){return (/**
+ * CLIR Underwriter Review Form â€” Coach View validate handler
+ */
+(function () {
+  var root = this.context.element;
+  var binding = this.context.binding;
+  var options = this.context.options || {};
+  var data = (binding && binding.get) ? (binding.get("value") || {}) : {};
+  var errors = [];
+
+  function customer() {
+    try {
+      if (options.customerInfo && options.customerInfo.get) {
+        return options.customerInfo.get("value") || {};
+      }
+    } catch (ignore) {}
+    return {};
+  }
+
+  function mark(name, invalid) {
+    var input = root.querySelector('[data-field="' + name + '"]');
+    if (!input) {
+      return;
+    }
+    if (invalid) {
+      input.className = (input.className || "").replace(/\bis-invalid\b/g, "") + " is-invalid";
+    } else {
+      input.className = (input.className || "").replace(/\bis-invalid\b/g, "").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
+    }
+  }
+
+  function blank(v) {
+    return v === undefined || v === null || String(v).replace(/^\s+|\s+$/g, "") === "";
+  }
+
+  var status = String(data.status || "").toUpperCase();
+  mark("status", status !== "APPROVED" && status !== "REJECTED");
+  mark("approverComments", blank(data.approverComments));
+  mark("processedBy", blank(data.processedBy));
+  mark("approvedAmount", false);
+
+  if (status !== "APPROVED" && status !== "REJECTED") {
+    errors.push("Decision must be APPROVED or REJECTED.");
+  }
+  if (blank(data.approverComments)) {
+    errors.push("Approver comments are required.");
+  }
+  if (blank(data.processedBy)) {
+    errors.push("Processed By is required.");
+  }
+
+  if (status === "APPROVED") {
+    var approvedAmount = Number(data.approvedAmount);
+    var currentLimit = Number(customer().currentLimit);
+    if (isNaN(approvedAmount)) {
+      errors.push("Approved amount is required when the decision is APPROVED.");
+      mark("approvedAmount", true);
+    } else if (!isNaN(currentLimit) && !(approvedAmount > currentLimit)) {
+      errors.push("Approved amount must be greater than the current credit limit.");
+      mark("approvedAmount", true);
+    }
+  }
+
+  var message = errors.join(" ");
+  var banner = root.querySelector('[data-role="errors"]');
+  if (banner) {
+    if (message) {
+      banner.hidden = false;
+      banner.textContent = message;
+    } else {
+      banner.hidden = true;
+      banner.textContent = "";
+    }
+  }
+  return message;
+}).call(api);};api.view=function(){(/**
+ * CLIR Underwriter Review Form â€” Coach View view handler
+ */
+(function () {
+  var root = this.context.element;
+  var binding = this.context.binding;
+  var options = this.context.options || {};
+
+  function opt(name) {
+    try {
+      if (options[name] && options[name].get) {
+        return options[name].get("value") || {};
+      }
+    } catch (ignore) {}
+    return {};
+  }
+
+  function text(selector, value) {
+    var node = root.querySelector(selector);
+    if (!node) {
+      return;
+    }
+    if (value === undefined || value === null || value === "") {
+      node.textContent = "â€”";
+    } else if (typeof value === "boolean") {
+      node.textContent = value ? "Yes" : "No";
+    } else {
+      node.textContent = String(value);
+    }
+  }
+
+  var customer = opt("customerInfo");
+  var risk = opt("riskAssessment");
+  var decision = (binding && binding.get) ? (binding.get("value") || {}) : {};
+
+  text('[data-display="customer.customerID"]', customer.customerID);
+  text('[data-display="customer.fullName"]', customer.fullName);
+  text('[data-display="customer.creditScore"]', customer.creditScore);
+  text('[data-display="customer.annualIncome"]', customer.annualIncome);
+  text('[data-display="customer.currentLimit"]', customer.currentLimit);
+  text('[data-display="customer.requestedIncrease"]', customer.requestedIncrease);
+
+  text('[data-display="risk.riskLevel"]', risk.riskLevel || "HIGH_RISK");
+  text('[data-display="risk.autoApproved"]', risk.autoApproved);
+  text('[data-display="risk.assessedDate"]', risk.assessedDate);
+  text('[data-display="risk.riskReason"]', risk.riskReason);
+
+  function setField(name, value) {
+    var input = root.querySelector('[data-field="' + name + '"]');
+    if (!input) {
+      return;
+    }
+    input.value = value === undefined || value === null ? "" : String(value);
+  }
+
+  setField("status", decision.status);
+  setField("approvedAmount", decision.approvedAmount);
+  setField("approverComments", decision.approverComments);
+  setField("processedBy", decision.processedBy);
+}).call(api);refreshDebug();};api.load=function(){(/**
+ * CLIR Underwriter Review Form â€” Coach View load handler
+ */
+(function () {
+  var root = this.context.element;
+  var binding = this.context.binding;
+  var self = this;
+
+  function getBound() {
+    var value = binding && binding.get ? binding.get("value") : null;
+    if (value === undefined || value === null) {
+      value = {};
+      if (binding && binding.set) {
+        binding.set("value", value);
+      }
+    }
+    return value;
+  }
+
+  var decision = getBound();
+  if (!decision.status || decision.status === "PENDING_UNDERWRITER") {
+    decision.status = "";
+  }
+  if (!decision.processedBy) {
+    try {
+      if (typeof tw !== "undefined" && tw.system && tw.system.user) {
+        decision.processedBy = tw.system.user.id || tw.system.user.userName || "";
+      }
+    } catch (ignore) {}
+  }
+  if (binding && binding.set) {
+    binding.set("value", decision);
+  }
+
+  var fields = root.querySelectorAll("[data-field]");
+  for (var i = 0; i < fields.length; i++) {
+    (function (input) {
+      input.addEventListener("change", function () {
+        if (typeof self.change === "function") {
+          self.change();
+        }
+      });
+      input.addEventListener("input", function () {
+        if (typeof self.change === "function") {
+          self.change();
+        }
+      });
+    })(fields[i]);
+  }
+
+  var completeBtn = root.querySelector('[data-action="complete"]');
+  if (completeBtn) {
+    completeBtn.addEventListener("click", function () {
+      var message = "";
+      if (typeof self.validate === "function") {
+        message = self.validate() || "";
+      }
+      var banner = root.querySelector('[data-role="errors"]');
+      if (message) {
+        if (banner) {
+          banner.hidden = false;
+          banner.textContent = message;
+        }
+        return;
+      }
+      var current = getBound();
+      current.processedDate = new Date();
+      if (binding && binding.set) {
+        binding.set("value", current);
+      }
+      if (banner) {
+        banner.hidden = true;
+        banner.textContent = "";
+      }
+    });
+  }
+}).call(api);api.view();};api.load();refreshDebug();})();</script></body></html>

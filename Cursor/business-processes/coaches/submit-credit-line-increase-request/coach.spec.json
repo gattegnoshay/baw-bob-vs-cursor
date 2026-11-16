@@ -1,0 +1,140 @@
+{
+  "name": "Submit Credit Line Increase Request",
+  "type": "CSHS Coach",
+  "humanTask": "Submit Credit Line Increase Request",
+  "processVariables": {
+    "customerInfo": {
+      "type": "CustomerInfo",
+      "direction": "inOut"
+    }
+  },
+  "layout": {
+    "sections": [
+      {
+        "id": "section-request",
+        "title": "Credit Line Increase Request",
+        "description": "Enter account holder details and the requested credit limit.",
+        "controls": [
+          {
+            "id": "txtCustomerID",
+            "stockControl": "Text",
+            "label": "Customer ID",
+            "binding": "tw.local.customerInfo.customerID",
+            "dataType": "String",
+            "required": true,
+            "readOnly": false,
+            "placeholder": "CUST-9942"
+          },
+          {
+            "id": "txtFullName",
+            "stockControl": "Text",
+            "label": "Full Name",
+            "binding": "tw.local.customerInfo.fullName",
+            "dataType": "String",
+            "required": true,
+            "readOnly": false
+          },
+          {
+            "id": "numCreditScore",
+            "stockControl": "Integer",
+            "label": "Credit Score",
+            "binding": "tw.local.customerInfo.creditScore",
+            "dataType": "Integer",
+            "required": true,
+            "readOnly": false,
+            "hint": "Valid bureau range: 300 – 850"
+          },
+          {
+            "id": "decAnnualIncome",
+            "stockControl": "Decimal",
+            "label": "Annual Income",
+            "binding": "tw.local.customerInfo.annualIncome",
+            "dataType": "Decimal",
+            "required": true,
+            "readOnly": false,
+            "hint": "Must be greater than 0"
+          },
+          {
+            "id": "decCurrentLimit",
+            "stockControl": "Decimal",
+            "label": "Current Credit Limit",
+            "binding": "tw.local.customerInfo.currentLimit",
+            "dataType": "Decimal",
+            "required": true,
+            "readOnly": false
+          },
+          {
+            "id": "decRequestedIncrease",
+            "stockControl": "Decimal",
+            "label": "Requested Credit Limit",
+            "binding": "tw.local.customerInfo.requestedIncrease",
+            "dataType": "Decimal",
+            "required": true,
+            "readOnly": false,
+            "hint": "Must be greater than the current credit limit"
+          }
+        ]
+      }
+    ],
+    "buttons": [
+      {
+        "id": "btnSubmit",
+        "label": "Submit Request",
+        "boundaryEvent": "OK",
+        "runsValidation": true,
+        "runsBeforeComplete": true
+      },
+      {
+        "id": "btnCancel",
+        "label": "Cancel",
+        "boundaryEvent": "Cancel",
+        "runsValidation": false
+      }
+    ]
+  },
+  "validations": [
+    {
+      "id": "VAL-REQ-ALL",
+      "rule": "required",
+      "fields": [
+        "customerID",
+        "fullName",
+        "creditScore",
+        "annualIncome",
+        "currentLimit",
+        "requestedIncrease"
+      ],
+      "message": "All request fields are required."
+    },
+    {
+      "id": "VAL-INCOME-GT-ZERO",
+      "rule": "annualIncome > 0",
+      "source": "PDD Step 1 / process documentation",
+      "message": "Annual income must be greater than 0."
+    },
+    {
+      "id": "VAL-REQUESTED-GT-CURRENT",
+      "rule": "requestedIncrease > currentLimit",
+      "source": "PDD Step 1 / process documentation",
+      "message": "Requested credit limit must be greater than the current credit limit."
+    },
+    {
+      "id": "VAL-SCORE-RANGE",
+      "rule": "creditScore >= 300 && creditScore <= 850",
+      "source": "CustomerInfo BO constraint",
+      "message": "Credit score must be between 300 and 850."
+    }
+  ],
+  "scripts": {
+    "onLoad": "on-load.js",
+    "validate": "validate.js",
+    "beforeComplete": "before-complete.js"
+  },
+  "optionalCustomHtml": {
+    "html": "layout.html",
+    "css": "coach.css"
+  },
+  "postSubmitEffects": [
+    "Sets tw.local.customerInfo.status = \"SUBMITTED\" in before-complete.js"
+  ]
+}

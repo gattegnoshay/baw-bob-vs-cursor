@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xmi="http://www.omg.org/XMI" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://CLIR/1.1/Credit%20Line%20Increase%20Request" xmlns:bo="http://CLIR/BusinessObjects" xmi:version="2.0" exporter="generate-baw-bpmn" exporterVersion="1.0.0" id="bpmnid-7d173010-0cb5-5230-a61e-3f42117f0069" targetNamespace="http://CLIR/1.1/Credit%20Line%20Increase%20Request">
+  <bpmn:import namespace="http://CLIR/BusinessObjects" location="CreditLineIncreaseRequest.xsd" importType="http://www.w3.org/2001/XMLSchema"/>
+  <bpmn:itemDefinition id="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0" structureRef="bo:CustomerInfo"/>
+  <bpmn:itemDefinition id="bpmnid-00f87e6d-7654-51d0-b518-9c303c31a3c8" structureRef="bo:RiskAssessment"/>
+  <bpmn:itemDefinition id="bpmnid-c7b42249-4f20-5d27-b9f4-ddc3015e73d9" structureRef="bo:ApprovalDecision"/>
+  <bpmn:process id="bpmnid-589e21f6-35fb-5b9e-a614-ffc6e2784f50" name="Credit Line Increase Request" isClosed="false" processType="None">
+    <bpmn:documentation>Automated credit line increase: customer/agent submits via Coach View 'CLIR Customer Info Form', system risk rules auto-approve or auto-reject, high-risk cases go to underwriter review via Coach View 'CLIR Underwriter Review Form' with a 24-hour SLA escalation, Core Banking REST updates the limit, and an audit event is dispatched.</bpmn:documentation>
+    <bpmn:laneSet id="bpmnid-47f73e86-20ef-58f0-bb0b-ce8bf98a9c6e">
+      <bpmn:lane id="bpmnid-4bb5a255-1a5e-5360-b6da-edf48a6b8d2c" name="Customer / Agent">
+        <bpmn:flowNodeRef>bpmnid-b72e2429-567e-584d-833c-d337e8bfb082</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="bpmnid-45164f5f-578c-5470-9463-d52794d639c8" name="Underwriter Team">
+        <bpmn:flowNodeRef>bpmnid-af393d92-a71d-5cc5-9b66-ad68366b2984</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="bpmnid-a87c22e9-b7fa-5a4d-9f7b-29878abbaf3f" name="System">
+        <bpmn:flowNodeRef>bpmnid-39089dec-5dcb-5054-9c7c-98320eec2249</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-ee234761-c3e0-5448-ac6b-9e1610dff7c7</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-a017b64c-3247-5cbd-818b-b8286a67ec2e</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-3b8d3e6f-b31f-5f62-9c15-863c70f7dc43</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="bpmnid-6547d026-31f8-50bc-908b-9ed963840714" name="Unassigned">
+        <bpmn:flowNodeRef>bpmnid-556414b4-5cb5-5e7d-acab-4ecc3b4fc5b3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-7bddacbf-b742-599a-9cc5-8d96c9f2000e</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-51937284-dd71-56d9-9032-6d8a7f65e8c9</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-692470ad-ad89-5fcd-9f8f-ee1c544942e8</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-ed918790-16ac-52ab-8b20-33bb9b84a76f</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-2ab802ba-7672-5beb-b8bd-37f64e30265f</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-10593819-c31c-54ca-b2bf-5f4fa0f31dab</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-12a361cb-ad07-58eb-9efc-a9e7abf13520</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-8a73fe31-3eb1-5c8a-9daf-e6acb821e001</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-368fa767-16a8-552e-b63b-c3b07885c4dd</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-fd0c5c85-7c36-5212-9061-540d2d17b907</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-5355aee8-e17c-5677-b54b-d2f24a58e7d6</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="bpmnid-556414b4-5cb5-5e7d-acab-4ecc3b4fc5b3" name="Request Started"/>
+    <bpmn:userTask id="bpmnid-b72e2429-567e-584d-833c-d337e8bfb082" name="Submit Credit Line Increase Request">
+      <bpmn:documentation>CSHS uses Coach View component 'CLIR Customer Info Form' (business-processes/coaches/coach-views/CLIR_CustomerInfoForm). Bind the Coach View to tw.local.customerInfo. Fields: customerID, fullName, creditScore, annualIncome, currentLimit, requestedIncrease. Client validate: annualIncome &gt; 0; requestedIncrease &gt; currentLimit; creditScore 300-850. On success sets customerInfo.status = SUBMITTED. Source: content.html + styles.css + handlers/load|view|change|validate.js.</bpmn:documentation>
+      <bpmn:performer id="bpmnid-fdf9b560-7988-5a11-ba4a-550a87f938dd" name="Customer / Agent"/>
+      <bpmn:ioSpecification id="bpmnid-6377a655-bfe7-52d4-b5f3-d1849df1663a">
+        <bpmn:dataOutput id="bpmnid-f1a2ada5-1a66-5c3e-b8ea-28c91fef20b9" name="customerInfo" itemSubjectRef="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0"/>
+        <bpmn:inputSet id="bpmnid-cfdbeb75-5b2f-59d4-a476-78759c1b0803"/>
+        <bpmn:outputSet id="bpmnid-b0f3ea27-2c65-58b1-bb24-c53f8c559f1f">
+          <bpmn:dataOutputRefs>bpmnid-f1a2ada5-1a66-5c3e-b8ea-28c91fef20b9</bpmn:dataOutputRefs>
+        </bpmn:outputSet>
+      </bpmn:ioSpecification>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="bpmnid-39089dec-5dcb-5054-9c7c-98320eec2249" name="Risk Assessment Engine">
+      <bpmn:documentation>Server script / decision service flow. Rule 1: if creditScore &lt; 650 -&gt; riskLevel=AUTO_REJECT, autoApproved=false, riskReason='Credit score below minimum threshold', approvalDecision.status=REJECTED, processedBy='SYSTEM_RISK_ENGINE'. Rule 2: else if currentLimit &gt; (annualIncome * 0.50) -&gt; riskLevel=HIGH_RISK, autoApproved=false, riskReason='High exposure ratio', approvalDecision.status=PENDING_UNDERWRITER. Rule 3: else if requestedIncrease &gt; (annualIncome + currentLimit) * 0.30 -&gt; riskLevel=HIGH_RISK, autoApproved=false, riskReason='Requested increase exceeds 30% financial capacity', approvalDecision.status=PENDING_UNDERWRITER. Default: riskLevel=LOW_RISK, autoApproved=true, riskReason='Passed automated risk checks', approvalDecision.status=APPROVED, approvedAmount=requestedIncrease, processedBy='SYSTEM_RISK_ENGINE'.</bpmn:documentation>
+      <bpmn:performer id="bpmnid-474d5f62-943f-51f5-8752-04267bb5624a" name="System"/>
+      <bpmn:ioSpecification id="bpmnid-93db8a26-346f-57a1-bbb1-a6a2ba468255">
+        <bpmn:dataInput id="bpmnid-d21a834c-777e-51f9-9ab3-da5b09a50f8d" name="customerInfo" itemSubjectRef="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0"/>
+        <bpmn:dataOutput id="bpmnid-20b54820-8da5-59dc-9b11-46f132bba72b" name="riskAssessment" itemSubjectRef="bpmnid-00f87e6d-7654-51d0-b518-9c303c31a3c8"/>
+        <bpmn:dataOutput id="bpmnid-c0ddf001-df9b-5afd-95ea-1684c5234372" name="approvalDecision" itemSubjectRef="bpmnid-c7b42249-4f20-5d27-b9f4-ddc3015e73d9"/>
+        <bpmn:inputSet id="bpmnid-c45579a8-afc4-5431-9c67-c45b12439ca2">
+          <bpmn:dataInputRefs>bpmnid-d21a834c-777e-51f9-9ab3-da5b09a50f8d</bpmn:dataInputRefs>
+        </bpmn:inputSet>
+        <bpmn:outputSet id="bpmnid-26099957-8d09-5116-a739-65a3191f788e">
+          <bpmn:dataOutputRefs>bpmnid-20b54820-8da5-59dc-9b11-46f132bba72b</bpmn:dataOutputRefs>
+          <bpmn:dataOutputRefs>bpmnid-c0ddf001-df9b-5afd-95ea-1684c5234372</bpmn:dataOutputRefs>
+        </bpmn:outputSet>
+      </bpmn:ioSpecification>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="bpmnid-7bddacbf-b742-599a-9cc5-8d96c9f2000e" name="Risk Level?" gatewayDirection="Unspecified" default="bpmnid-183d7e06-c708-55bd-aa87-9127d5e6ef0a">
+      <bpmn:documentation>Routes on tw.local.riskAssessment.riskLevel. Values: AUTO_REJECT, LOW_RISK, HIGH_RISK.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="bpmnid-ee234761-c3e0-5448-ac6b-9e1610dff7c7" name="Update Credit Limit">
+      <bpmn:documentation>External Service (OpenAPI). POST https://api.bank.internal/v1/limits/update. Request: { accountHolderId: tw.local.customerInfo.customerID, newCreditLimit: tw.local.approvalDecision.approvedAmount || tw.local.customerInfo.requestedIncrease, approvalSource: tw.local.riskAssessment.autoApproved ? 'BAW_AUTO_APPROVAL' : 'BAW_UNDERWRITER_APPROVAL' }. Map HTTP 200 txStatus into tw.local.approvalDecision.status. Assumption: underwriter Approved also calls this REST (PDD ASCII only showed Core Banking on LOW_RISK path).</bpmn:documentation>
+      <bpmn:performer id="bpmnid-8982b3db-ed0c-5a0f-aa48-bd37bf99b718" name="System"/>
+      <bpmn:ioSpecification id="bpmnid-bcb1f8e8-222e-5ba4-83c6-3e314159f5c8">
+        <bpmn:dataInput id="bpmnid-d13ca59f-d963-5bae-8c16-a38c820ec06f" name="customerInfo" itemSubjectRef="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0"/>
+        <bpmn:dataInput id="bpmnid-cc31de93-410f-50db-a2d7-e613c5dc0d35" name="riskAssessment" itemSubjectRef="bpmnid-00f87e6d-7654-51d0-b518-9c303c31a3c8"/>
+        <bpmn:dataInput id="bpmnid-b51e03f3-65a5-5a58-8909-83f8dbf2b05c" name="approvalDecision" itemSubjectRef="bpmnid-c7b42249-4f20-5d27-b9f4-ddc3015e73d9"/>
+        <bpmn:dataOutput id="bpmnid-f583064c-4211-5360-b680-682e37360c20" name="approvalDecision" itemSubjectRef="bpmnid-c7b42249-4f20-5d27-b9f4-ddc3015e73d9"/>
+        <bpmn:inputSet id="bpmnid-fd88ff9f-4bce-5278-9135-426fe5391807">
+          <bpmn:dataInputRefs>bpmnid-d13ca59f-d963-5bae-8c16-a38c820ec06f</bpmn:dataInputRefs>
+          <bpmn:dataInputRefs>bpmnid-cc31de93-410f-50db-a2d7-e613c5dc0d35</bpmn:dataInputRefs>
+          <bpmn:dataInputRefs>bpmnid-b51e03f3-65a5-5a58-8909-83f8dbf2b05c</bpmn:dataInputRefs>
+        </bpmn:inputSet>
+        <bpmn:outputSet id="bpmnid-0e777d34-cdb9-5289-a002-8e951859ba68">
+          <bpmn:dataOutputRefs>bpmnid-f583064c-4211-5360-b680-682e37360c20</bpmn:dataOutputRefs>
+        </bpmn:outputSet>
+      </bpmn:ioSpecification>
+    </bpmn:serviceTask>
+    <bpmn:boundaryEvent id="bpmnid-51937284-dd71-56d9-9032-6d8a7f65e8c9" name="Core Banking Failed" attachedToRef="tns:bpmnid-ee234761-c3e0-5448-ac6b-9e1610dff7c7">
+      <bpmn:documentation>Error boundary on Core Banking REST. Route to audit with rejected/error outcome for recovery visibility.</bpmn:documentation>
+      <bpmn:errorEventDefinition id="bpmnid-991ea7cd-2b9b-51ee-a360-85e75522328d"/>
+    </bpmn:boundaryEvent>
+    <bpmn:userTask id="bpmnid-af393d92-a71d-5cc5-9b66-ad68366b2984" name="Underwriter Manual Review">
+      <bpmn:documentation>CSHS uses Coach View component 'CLIR Underwriter Review Form' (business-processes/coaches/coach-views/CLIR_UnderwriterReviewForm). Bind Coach View to tw.local.approvalDecision; config-bind customerInfo -&gt; tw.local.customerInfo and riskAssessment -&gt; tw.local.riskAssessment (read-only). Capture status APPROVED/REJECTED, approvedAmount, approverComments, processedBy. Assign to team Underwriter_Group. SLA: 24-hour non-interrupting timer boundary. Source: content.html + styles.css + handlers/load|view|change|validate.js.</bpmn:documentation>
+      <bpmn:performer id="bpmnid-0d1fc704-821a-5249-9a35-f7d3a9b5f384" name="Underwriter Team"/>
+      <bpmn:ioSpecification id="bpmnid-c732b8e5-3f39-5992-b400-a3dbe75d4c5a">
+        <bpmn:dataInput id="bpmnid-0e0f3993-a500-5acd-a925-b180f9b76fdf" name="customerInfo" itemSubjectRef="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0"/>
+        <bpmn:dataInput id="bpmnid-ffd8d690-e71d-51f0-b998-93a47cb617de" name="riskAssessment" itemSubjectRef="bpmnid-00f87e6d-7654-51d0-b518-9c303c31a3c8"/>
+        <bpmn:dataInput id="bpmnid-b5a3108d-32d0-5540-b0cb-00ee5ba4dee7" name="approvalDecision" itemSubjectRef="bpmnid-c7b42249-4f20-5d27-b9f4-ddc3015e73d9"/>
+        <bpmn:dataOutput id="bpmnid-db61f0a9-cd86-511f-b6d2-b7ba0a5de496" name="approvalDecision" itemSubjectRef="bpmnid-c7b42249-4f20-5d27-b9f4-ddc3015e73d9"/>
+        <bpmn:inputSet id="bpmnid-c5c8d0da-f99b-5230-9d83-d45103ea8d5c">
+          <bpmn:dataInputRefs>bpmnid-0e0f3993-a500-5acd-a925-b180f9b76fdf</bpmn:dataInputRefs>
+          <bpmn:dataInputRefs>bpmnid-ffd8d690-e71d-51f0-b998-93a47cb617de</bpmn:dataInputRefs>
+          <bpmn:dataInputRefs>bpmnid-b5a3108d-32d0-5540-b0cb-00ee5ba4dee7</bpmn:dataInputRefs>
+        </bpmn:inputSet>
+        <bpmn:outputSet id="bpmnid-4dbdd8a2-5e32-5d30-bcb7-8fc109f0832e">
+          <bpmn:dataOutputRefs>bpmnid-db61f0a9-cd86-511f-b6d2-b7ba0a5de496</bpmn:dataOutputRefs>
+        </bpmn:outputSet>
+      </bpmn:ioSpecification>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="bpmnid-692470ad-ad89-5fcd-9f8f-ee1c544942e8" name="Underwriter SLA 24h" attachedToRef="tns:bpmnid-af393d92-a71d-5cc5-9b66-ad68366b2984" cancelActivity="false">
+      <bpmn:documentation>Non-interrupting timer. Duration: 24 hours (PT24H). On fire, trigger Manager Escalation Notification Email handler. Set timer duration in Process Designer after import.</bpmn:documentation>
+      <bpmn:timerEventDefinition id="bpmnid-5cca09a6-6988-5d58-bf70-9bcca3c117dd"/>
+    </bpmn:boundaryEvent>
+    <bpmn:serviceTask id="bpmnid-a017b64c-3247-5cbd-818b-b8286a67ec2e" name="Manager Escalation Notify">
+      <bpmn:documentation>Sends manager escalation notification email for overdue underwriter review. Sets approvalDecision.status = ESCALATED (extended beyond PDD enum for routing) and customerInfo.status = ESCALATED.</bpmn:documentation>
+      <bpmn:performer id="bpmnid-5cd67032-5119-51c8-9c25-adfb440fe626" name="System"/>
+      <bpmn:ioSpecification id="bpmnid-a6c439ae-667f-5385-a159-e16cb4eecd02">
+        <bpmn:dataInput id="bpmnid-be86cccf-1c4e-5dd0-9437-7a39c5f37bcb" name="customerInfo" itemSubjectRef="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0"/>
+        <bpmn:dataInput id="bpmnid-acb4d9a7-8945-58b8-90a1-e002b2c5d4b0" name="riskAssessment" itemSubjectRef="bpmnid-00f87e6d-7654-51d0-b518-9c303c31a3c8"/>
+        <bpmn:dataInput id="bpmnid-ca22da97-7f74-523c-92fb-005b863b0b15" name="approvalDecision" itemSubjectRef="bpmnid-c7b42249-4f20-5d27-b9f4-ddc3015e73d9"/>
+        <bpmn:dataOutput id="bpmnid-ac6a71da-b2b5-5136-af21-463354d058ea" name="approvalDecision" itemSubjectRef="bpmnid-c7b42249-4f20-5d27-b9f4-ddc3015e73d9"/>
+        <bpmn:inputSet id="bpmnid-f8da313a-818e-59aa-b0dd-a87050a26148">
+          <bpmn:dataInputRefs>bpmnid-be86cccf-1c4e-5dd0-9437-7a39c5f37bcb</bpmn:dataInputRefs>
+          <bpmn:dataInputRefs>bpmnid-acb4d9a7-8945-58b8-90a1-e002b2c5d4b0</bpmn:dataInputRefs>
+          <bpmn:dataInputRefs>bpmnid-ca22da97-7f74-523c-92fb-005b863b0b15</bpmn:dataInputRefs>
+        </bpmn:inputSet>
+        <bpmn:outputSet id="bpmnid-bd8b0270-5bcc-5d3d-90e7-f5e472f5f3a2">
+          <bpmn:dataOutputRefs>bpmnid-ac6a71da-b2b5-5136-af21-463354d058ea</bpmn:dataOutputRefs>
+        </bpmn:outputSet>
+      </bpmn:ioSpecification>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="bpmnid-ed918790-16ac-52ab-8b20-33bb9b84a76f" name="Underwriter Outcome?" gatewayDirection="Unspecified" default="bpmnid-8502897e-f3ee-5829-a510-9d134ddec205">
+      <bpmn:documentation>Routes on tw.local.approvalDecision.status after underwriter review.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="bpmnid-3b8d3e6f-b31f-5f62-9c15-863c70f7dc43" name="Dispatch Audit Log">
+      <bpmn:documentation>Formats JSON audit payload with system timestamp, process instance ID, customerID, riskLevel, and final approvalDecision. Writes to system log and/or HTTP audit endpoint.</bpmn:documentation>
+      <bpmn:performer id="bpmnid-3e77b153-100c-5776-84c1-c0ce013c106c" name="System"/>
+      <bpmn:ioSpecification id="bpmnid-7baedaac-db46-5d05-977e-9aee837c0e25">
+        <bpmn:dataInput id="bpmnid-0345131e-50fc-5310-8a65-1fb226146676" name="customerInfo" itemSubjectRef="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0"/>
+        <bpmn:dataInput id="bpmnid-bc9415b5-db77-5c6c-977d-ef306e2260de" name="riskAssessment" itemSubjectRef="bpmnid-00f87e6d-7654-51d0-b518-9c303c31a3c8"/>
+        <bpmn:dataInput id="bpmnid-f78b3900-3db6-57e2-a832-d4ede1bcf287" name="approvalDecision" itemSubjectRef="bpmnid-c7b42249-4f20-5d27-b9f4-ddc3015e73d9"/>
+        <bpmn:inputSet id="bpmnid-fdb0b6e7-afd3-5203-b8e2-9ee01443fe78">
+          <bpmn:dataInputRefs>bpmnid-0345131e-50fc-5310-8a65-1fb226146676</bpmn:dataInputRefs>
+          <bpmn:dataInputRefs>bpmnid-bc9415b5-db77-5c6c-977d-ef306e2260de</bpmn:dataInputRefs>
+          <bpmn:dataInputRefs>bpmnid-f78b3900-3db6-57e2-a832-d4ede1bcf287</bpmn:dataInputRefs>
+        </bpmn:inputSet>
+        <bpmn:outputSet id="bpmnid-e5357394-70e4-5d42-97a8-a7c54d3813c6"/>
+      </bpmn:ioSpecification>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="bpmnid-2ab802ba-7672-5beb-b8bd-37f64e30265f" name="Final Outcome?" gatewayDirection="Unspecified" default="bpmnid-ec1c08d1-6d2b-5427-ac07-d5bed14956cb">
+      <bpmn:documentation>Routes to the named end event matching the terminal decision.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="bpmnid-10593819-c31c-54ca-b2bf-5f4fa0f31dab" name="Auto-Rejected"/>
+    <bpmn:endEvent id="bpmnid-12a361cb-ad07-58eb-9efc-a9e7abf13520" name="Auto-Approved"/>
+    <bpmn:endEvent id="bpmnid-8a73fe31-3eb1-5c8a-9daf-e6acb821e001" name="Underwriter-Approved"/>
+    <bpmn:endEvent id="bpmnid-368fa767-16a8-552e-b63b-c3b07885c4dd" name="Underwriter-Rejected"/>
+    <bpmn:endEvent id="bpmnid-fd0c5c85-7c36-5212-9061-540d2d17b907" name="Escalated"/>
+    <bpmn:endEvent id="bpmnid-5355aee8-e17c-5677-b54b-d2f24a58e7d6" name="Integration-Error"/>
+    <bpmn:sequenceFlow id="bpmnid-9bc4c18d-c690-5b6b-a3bd-4081715e46c1" name="To Submit Credit Line Increase Request" sourceRef="bpmnid-556414b4-5cb5-5e7d-acab-4ecc3b4fc5b3" targetRef="bpmnid-b72e2429-567e-584d-833c-d337e8bfb082"/>
+    <bpmn:sequenceFlow id="bpmnid-10e0a328-fc48-541f-969d-198d638b8d82" name="To Risk Assessment Engine" sourceRef="bpmnid-b72e2429-567e-584d-833c-d337e8bfb082" targetRef="bpmnid-39089dec-5dcb-5054-9c7c-98320eec2249"/>
+    <bpmn:sequenceFlow id="bpmnid-1631d403-7c3e-5e47-8a2d-0c5df21b24ee" name="To Risk Level?" sourceRef="bpmnid-39089dec-5dcb-5054-9c7c-98320eec2249" targetRef="bpmnid-7bddacbf-b742-599a-9cc5-8d96c9f2000e"/>
+    <bpmn:sequenceFlow id="bpmnid-42b6db9a-d147-5ac8-984c-ce06019f940b" name="AUTO_REJECT" sourceRef="bpmnid-7bddacbf-b742-599a-9cc5-8d96c9f2000e" targetRef="bpmnid-3b8d3e6f-b31f-5f62-9c15-863c70f7dc43">
+      <bpmn:conditionExpression id="bpmnid-8f8e57e5-55e0-54fb-9184-21cbd3d28441">tw.local.riskAssessment.riskLevel == "AUTO_REJECT"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="bpmnid-a48e4945-70e4-5077-a0e6-ce8eb96c0dcb" name="LOW_RISK" sourceRef="bpmnid-7bddacbf-b742-599a-9cc5-8d96c9f2000e" targetRef="bpmnid-ee234761-c3e0-5448-ac6b-9e1610dff7c7">
+      <bpmn:conditionExpression id="bpmnid-3ed302ff-68d6-5ed2-ba84-7d978b600134">tw.local.riskAssessment.riskLevel == "LOW_RISK"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="bpmnid-183d7e06-c708-55bd-aa87-9127d5e6ef0a" name="HIGH_RISK" sourceRef="bpmnid-7bddacbf-b742-599a-9cc5-8d96c9f2000e" targetRef="bpmnid-af393d92-a71d-5cc5-9b66-ad68366b2984"/>
+    <bpmn:sequenceFlow id="bpmnid-ab4de0a0-431a-5d13-8354-91c9dd7a3996" name="To Dispatch Audit Log" sourceRef="bpmnid-ee234761-c3e0-5448-ac6b-9e1610dff7c7" targetRef="bpmnid-3b8d3e6f-b31f-5f62-9c15-863c70f7dc43"/>
+    <bpmn:sequenceFlow id="bpmnid-4e318378-837f-542c-8b6c-0b6311af45d6" name="REST Error" sourceRef="bpmnid-51937284-dd71-56d9-9032-6d8a7f65e8c9" targetRef="bpmnid-3b8d3e6f-b31f-5f62-9c15-863c70f7dc43"/>
+    <bpmn:sequenceFlow id="bpmnid-4eb69298-686a-51cd-a293-0c13db474105" name="To Underwriter Outcome?" sourceRef="bpmnid-af393d92-a71d-5cc5-9b66-ad68366b2984" targetRef="bpmnid-ed918790-16ac-52ab-8b20-33bb9b84a76f"/>
+    <bpmn:sequenceFlow id="bpmnid-b390bdca-6785-5f6c-bddb-b1189e29cc4b" name="Approved" sourceRef="bpmnid-ed918790-16ac-52ab-8b20-33bb9b84a76f" targetRef="bpmnid-ee234761-c3e0-5448-ac6b-9e1610dff7c7">
+      <bpmn:conditionExpression id="bpmnid-8f8d02f6-ea72-576d-8161-7e05eddf7d33">tw.local.approvalDecision.status == "APPROVED"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="bpmnid-8502897e-f3ee-5829-a510-9d134ddec205" name="Rejected" sourceRef="bpmnid-ed918790-16ac-52ab-8b20-33bb9b84a76f" targetRef="bpmnid-3b8d3e6f-b31f-5f62-9c15-863c70f7dc43"/>
+    <bpmn:sequenceFlow id="bpmnid-e22c1ef3-f654-5123-8f11-ab3490b9c8a6" name="To Manager Escalation Notify" sourceRef="bpmnid-692470ad-ad89-5fcd-9f8f-ee1c544942e8" targetRef="bpmnid-a017b64c-3247-5cbd-818b-b8286a67ec2e"/>
+    <bpmn:sequenceFlow id="bpmnid-10078add-0bca-5c3c-bd17-83c39e53fbae" name="To Escalated" sourceRef="bpmnid-a017b64c-3247-5cbd-818b-b8286a67ec2e" targetRef="bpmnid-fd0c5c85-7c36-5212-9061-540d2d17b907"/>
+    <bpmn:sequenceFlow id="bpmnid-8fff7b77-50f6-5767-b454-d6275963b6ef" name="To Final Outcome?" sourceRef="bpmnid-3b8d3e6f-b31f-5f62-9c15-863c70f7dc43" targetRef="bpmnid-2ab802ba-7672-5beb-b8bd-37f64e30265f"/>
+    <bpmn:sequenceFlow id="bpmnid-1019e867-c69e-5436-a2b8-14b5cbd317f9" name="Auto-Rejected" sourceRef="bpmnid-2ab802ba-7672-5beb-b8bd-37f64e30265f" targetRef="bpmnid-10593819-c31c-54ca-b2bf-5f4fa0f31dab">
+      <bpmn:conditionExpression id="bpmnid-44501f56-fcc5-54b3-87ac-5914d40bb4bb">tw.local.riskAssessment.riskLevel == "AUTO_REJECT"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="bpmnid-390023b3-2d01-5386-a226-a4b56a171066" name="Auto-Approved" sourceRef="bpmnid-2ab802ba-7672-5beb-b8bd-37f64e30265f" targetRef="bpmnid-12a361cb-ad07-58eb-9efc-a9e7abf13520">
+      <bpmn:conditionExpression id="bpmnid-1253a28b-a765-5806-9fe4-68def1c387b7">tw.local.riskAssessment.riskLevel == "LOW_RISK" &amp;&amp; tw.local.approvalDecision.status == "APPROVED"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="bpmnid-08a7fe39-4479-5ad2-b9c6-173a25c0b48c" name="Underwriter-Approved" sourceRef="bpmnid-2ab802ba-7672-5beb-b8bd-37f64e30265f" targetRef="bpmnid-8a73fe31-3eb1-5c8a-9daf-e6acb821e001">
+      <bpmn:conditionExpression id="bpmnid-485208ca-9f4f-5d0c-9ac5-0ea5e5c616f5">tw.local.riskAssessment.riskLevel == "HIGH_RISK" &amp;&amp; tw.local.approvalDecision.status == "APPROVED"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="bpmnid-86318633-bef2-5132-9a9d-13f7249096e8" name="Integration-Error" sourceRef="bpmnid-2ab802ba-7672-5beb-b8bd-37f64e30265f" targetRef="bpmnid-5355aee8-e17c-5677-b54b-d2f24a58e7d6">
+      <bpmn:conditionExpression id="bpmnid-6b81a9a9-de1f-500b-a691-62e1c7c7b5f7">tw.local.approvalDecision.status == "INTEGRATION_ERROR"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="bpmnid-ec1c08d1-6d2b-5427-ac07-d5bed14956cb" name="Underwriter-Rejected" sourceRef="bpmnid-2ab802ba-7672-5beb-b8bd-37f64e30265f" targetRef="bpmnid-368fa767-16a8-552e-b63b-c3b07885c4dd"/>
+  </bpmn:process>
+</bpmn:definitions>

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<!--
+  CLIR — Submit Credit Line Request
+  Coach:   Submit Credit Line Request (CSHS)
+  Step:    Step 1 of the Credit Line Increase Request process
+  Actor:   Process Initiator (CSR or Self-Service Portal)
+  Binding: tw.local.customerInfo (CustomerInfo BO)
+
+  BAW integration notes:
+  ─────────────────────
+  • This file is the starter HTML for a Client-Side Human Service (CSHS) coach view.
+  • In Process Designer, create a CSHS named "Submit Credit Line Request".
+  • Add a Coach View that references this HTML as its template.
+  • Bind the form output to tw.local.customerInfo (type: CustomerInfo).
+  • The coach calls tw.coach.finish() on valid submission — wire this to the
+    "Submit" boundary event in the CSHS flow.
+  • tw.coach.validate() is called before finish to surface inline errors.
+
+  Field → BO mapping:
+  ─────────────────────
+  customerID        → tw.local.customerInfo.customerID        (String, required)
+  fullName          → tw.local.customerInfo.fullName          (String, required)
+  creditScore       → tw.local.customerInfo.creditScore       (Integer, required, 300–850)
+  annualIncome      → tw.local.customerInfo.annualIncome      (Decimal, required, > 0)
+  currentLimit      → tw.local.customerInfo.currentLimit      (Decimal, required, >= 0)
+  requestedIncrease → tw.local.customerInfo.requestedIncrease (Decimal, required, > 0)
+  channel           → tw.local.customerInfo.channel           (String, set automatically)
+  submissionDate    → tw.local.customerInfo.submissionDate    (DateTime, set automatically)
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Credit Line Increase — Submit Request</title>
+  <style>
+    /* ── Design tokens (IBM Carbon-aligned) ─────────────────────────────── */
+    :root {
+      --ibm-blue-60:   #0043ce;
+      --ibm-blue-70:   #002d9c;
+      --ibm-gray-10:   #f4f4f4;
+      --ibm-gray-20:   #e0e0e0;
+      --ibm-gray-50:   #8d8d8d;
+      --ibm-gray-90:   #262626;
+      --ibm-red-60:    #da1e28;
+      --ibm-green-50:  #24a148;
+      --ibm-white:     #ffffff;
+      --radius:        4px;
+      --font:          'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--ibm-gray-90);
+      background: var(--ibm-gray-10);
+      min-height: 100vh;
+    }
+
+    /* ── Shell header ─────────────────────────────────────────────────── */
+    .shell-header {
+      background: var(--ibm-blue-60);
+      color: var(--ibm-white);
+      padding: 0 1.5rem;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .shell-header .brand { font-weight: 600; font-size: 15px; letter-spacing: .01em; }
+    .shell-header .separator { opacity: .4; }
+    .shell-header .page-title { font-size: 13px; opacity: .85; }
+
+    /* ── Progress bar ─────────────────────────────────────────────────── */
+    .progress-bar {
+      background: var(--ibm-blue-70);
+      padding: .5rem 1.5rem;
+      display: flex;
+      gap: 2rem;
+    }
+    .progress-step {
+      font-size: 12px;
+      color: rgba(255,255,255,.55);
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+    }
+    .progress-step.active { color: var(--ibm-white); font-weight: 600; }
+    .progress-step .step-num {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid currentColor;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+    }
+    .progress-step.active .step-num {
+      background: var(--ibm-white);
+      color: var(--ibm-blue-70);
+      border-color: var(--ibm-white);
+    }
+
+    /* ── Page layout ──────────────────────────────────────────────────── */
+    .page-wrapper {
+      max-width: 720px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .card {
+      background: var(--ibm-white);
+      border: 1px solid var(--ibm-gray-20);
+      border-radius: var(--radius);
+      padding: 2rem;
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--ibm-gray-90);
+      margin-bottom: .25rem;
+    }
+    .card-subtitle {
+      font-size: 13px;
+      color: var(--ibm-gray-50);
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--ibm-gray-20);
+      padding-bottom: 1rem;
+    }
+
+    /* ── Section grouping ─────────────────────────────────────────────── */
+    .form-section + .form-section { margin-top: 2rem; }
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--ibm-gray-50);
+      margin-bottom: 1rem;
+    }
+
+    /* ── Field grid ───────────────────────────────────────────────────── */
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem 1.5rem;
+    }
+    .field-grid .field-full { grid-column: 1 / -1; }
+
+    /* ── Field ────────────────────────────────────────────────────────── */
+    .field { display: flex; flex-direction: column; gap: .35rem; }
+
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ibm-gray-90);
+    }
+    label .required-mark { color: var(--ibm-red-60); margin-left: 2px; }
+    label .hint {
+      font-weight: 400;
+      font-size: 12px;
+      color: var(--ibm-gray-50);
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      height: 40px;
+      border: 1px solid var(--ibm-gray-50);
+      border-radius: var(--radius);
+      padding: 0 .75rem;
+      font-size: 14px;
+      font-family: var(--font);
+      color: var(--ibm-gray-90);
+      background: var(--ibm-white);
+      transition: border-color .15s, box-shadow .15s;
+      width: 100%;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--ibm-blue-60);
+      box-shadow: 0 0 0 2px rgba(0,67,206,.2);
+    }
+    input.invalid, select.invalid {
+      border-color: var(--ibm-red-60);
+      box-shadow: 0 0 0 2px rgba(218,30,40,.15);
+    }
+
+    .error-msg {
+      font-size: 12px;
+      color: var(--ibm-red-60);
+      display: none;
+      align-items: center;
+      gap: .3rem;
+    }
+    .error-msg.visible { display: flex; }
+    .error-msg::before { content: '⚠'; font-size: 13px; }
+
+    .helper-text {
+      font-size: 12px;
+      color: var(--ibm-gray-50);
+    }
+
+    /* ── Risk preview ─────────────────────────────────────────────────── */
+    .risk-preview {
+      margin-top: 1.5rem;
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--ibm-gray-20);
+      background: var(--ibm-gray-10);
+      display: none;
+    }
+    .risk-preview.visible { display: block; }
+    .risk-preview-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--ibm-gray-50);
+      margin-bottom: .5rem;
+    }
+    .risk-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .25rem .75rem;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .risk-badge.low    { background: #defbe6; color: #0e6027; }
+    .risk-badge.high   { background: #ffd6e8; color: #750e21; }
+    .risk-badge.reject { background: #fff1f1; color: var(--ibm-red-60); border: 1px solid var(--ibm-red-60); }
+
+    .risk-reason { font-size: 12px; color: var(--ibm-gray-50); margin-top: .4rem; }
+
+    /* ── Action bar ───────────────────────────────────────────────────── */
+    .action-bar {
+      display: flex;
+      justify-content: flex-end;
+      gap: .75rem;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--ibm-gray-20);
+    }
+
+    .btn {
+      height: 40px;
+      padding: 0 1.25rem;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer;
+      border: none;
+      transition: background .15s, opacity .15s;
+    }
+    .btn:focus { outline: 2px solid var(--ibm-blue-60); outline-offset: 2px; }
+    .btn-secondary {
+      background: var(--ibm-gray-10);
+      color: var(--ibm-gray-90);
+      border: 1px solid var(--ibm-gray-50);
+    }
+    .btn-secondary:hover { background: var(--ibm-gray-20); }
+    .btn-primary {
+      background: var(--ibm-blue-60);
+      color: var(--ibm-white);
+    }
+    .btn-primary:hover { background: var(--ibm-blue-70); }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── Responsive ───────────────────────────────────────────────────── */
+    @media (max-width: 560px) {
+      .field-grid { grid-template-columns: 1fr; }
+      .field-grid .field-full { grid-column: 1; }
+      .progress-bar { gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Shell header -->
+  <header class="shell-header" role="banner">
+    <span class="brand">IBM</span>
+    <span class="separator">|</span>
+    <span class="page-title">Credit Line Increase Request</span>
+  </header>
+
+  <!-- Progress indicator -->
+  <nav class="progress-bar" aria-label="Process steps">
+    <div class="progress-step active" aria-current="step">
+      <span class="step-num" aria-hidden="true">1</span>
+      Submit Request
+    </div>
+    <div class="progress-step">
+      <span class="step-num" aria-hidden="true">2</span>
+      Risk Assessment
+    </div>
+    <div class="progress-step">
+      <span class="step-num" aria-hidden="true">3</span>
+      Decision
+    </div>
+  </nav>
+
+  <main class="page-wrapper">
+    <div class="card" role="main">
+      <h1 class="card-title">Submit Credit Line Increase Request</h1>
+      <p class="card-subtitle">Complete all fields below. Your request will be assessed automatically after submission.</p>
+
+      <form id="clirForm" novalidate aria-label="Credit line increase request form">
+
+        <!-- Section 1: Customer Identity -->
+        <section class="form-section">
+          <p class="section-label">Customer Information</p>
+          <div class="field-grid">
+
+            <div class="field">
+              <label for="customerID">Customer ID <span class="required-mark" aria-hidden="true">*</span></label>
+              <input type="text" id="customerID" name="customerID"
+                     placeholder="e.g. CUST-9942"
+                     autocomplete="off"
+                     aria-required="true"
+                     aria-describedby="customerID-err" />
+              <span id="customerID-err" class="error-msg" role="alert">Please enter a valid customer ID</span>
+            </div>
+
+            <div class="field">
+              <label for="fullName">Full Legal Name <span class="required-mark" aria-hidden="true">*</span></label>
+              <input type="text" id="fullName" name="fullName"
+                     placeholder="e.g. Jane Smith"
+                     autocomplete="name"
+                     aria-required="true"
+                     aria-describedby="fullName-err" />
+              <span id="fullName-err" class="error-msg" role="alert">Please enter the account holder's full name</span>
+            </div>
+
+            <div class="field">
+              <label for="channel">Intake Channel <span class="required-mark" aria-hidden="true">*</span></label>
+              <select id="channel" name="channel" aria-required="true" aria-describedby="channel-err">
+                <option value="">— Select —</option>
+                <option value="CSR">CSR (Customer Service Representative)</option>
+                <option value="SELF_SERVICE">Self-Service Portal</option>
+              </select>
+              <span id="channel-err" class="error-msg" role="alert">Please select an intake channel</span>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Section 2: Financial Data -->
+        <section class="form-section">
+          <p class="section-label">Financial Details</p>
+          <div class="field-grid">
+
+            <div class="field">
+              <label for="creditScore">
+                Credit Score <span class="required-mark" aria-hidden="true">*</span>
+                <span class="hint">(300 – 850)</span>
+              </label>
+              <input type="number" id="creditScore" name="creditScore"
+                     min="300" max="850" step="1"
+                     placeholder="e.g. 720"
+                     aria-required="true"
+                     aria-describedby="creditScore-err creditScore-hint" />
+              <span id="creditScore-hint" class="helper-text">Bureau credit score rating</span>
+              <span id="creditScore-err" class="error-msg" role="alert">Credit score must be between 300 and 850</span>
+            </div>
+
+            <div class="field">
+              <label for="annualIncome">
+                Annual Income <span class="required-mark" aria-hidden="true">*</span>
+                <span class="hint">(£ / $ gross)</span>
+              </label>
+              <input type="number" id="annualIncome" name="annualIncome"
+                     min="0.01" step="0.01"
+                     placeholder="e.g. 55000"
+                     aria-required="true"
+                     aria-describedby="annualIncome-err" />
+              <span id="annualIncome-err" class="error-msg" role="alert">Annual income must be greater than zero</span>
+            </div>
+
+            <div class="field">
+              <label for="currentLimit">
+                Current Credit Limit <span class="required-mark" aria-hidden="true">*</span>
+              </label>
+              <input type="number" id="currentLimit" name="currentLimit"
+                     min="0" step="0.01"
+                     placeholder="e.g. 5000"
+                     aria-required="true"
+                     aria-describedby="currentLimit-err" />
+              <span id="currentLimit-err" class="error-msg" role="alert">Current limit must be zero or greater</span>
+            </div>
+
+            <div class="field">
+              <label for="requestedIncrease">
+                Requested Increase <span class="required-mark" aria-hidden="true">*</span>
+              </label>
+              <input type="number" id="requestedIncrease" name="requestedIncrease"
+                     min="0.01" step="0.01"
+                     placeholder="e.g. 2000"
+                     aria-required="true"
+                     aria-describedby="requestedIncrease-err" />
+              <span id="requestedIncrease-err" class="error-msg" role="alert">Requested increase must be greater than zero</span>
+            </div>
+
+          </div>
+
+          <!-- Live risk preview -->
+          <div id="riskPreview" class="risk-preview" aria-live="polite" aria-label="Risk preview">
+            <p class="risk-preview-title">Indicative Risk Assessment</p>
+            <span id="riskBadge" class="risk-badge"></span>
+            <p id="riskReason" class="risk-reason"></p>
+          </div>
+        </section>
+
+        <!-- Action bar -->
+        <div class="action-bar">
+          <button type="button" class="btn btn-secondary" id="btnClear">Clear Form</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmit">Submit Request</button>
+        </div>
+
+      </form>
+    </div>
+  </main>
+
+  <script>
+    /* ────────────────────────────────────────────────────────────────────
+       BAW CSHS Coach Script
+       ─────────────────────────────────────────────────────────────────────
+       In Process Designer:
+         1. Paste this entire file as the coach view template.
+         2. Map the form submit handler's output object to tw.local.customerInfo.
+         3. Replace the submitToBAW() stub with the actual tw.coach.finish() call.
+
+       tw.local bindings (set these in the CSHS data mapping):
+         Output: tw.local.customerInfo  (type: CustomerInfo)
+    */
+
+    /* ── DOM refs ───────────────────────────────────────────────────── */
+    const form      = document.getElementById('clirForm');
+    const preview   = document.getElementById('riskPreview');
+    const riskBadge = document.getElementById('riskBadge');
+    const riskReason= document.getElementById('riskReason');
+
+    const fields = {
+      customerID:        document.getElementById('customerID'),
+      fullName:          document.getElementById('fullName'),
+      channel:           document.getElementById('channel'),
+      creditScore:       document.getElementById('creditScore'),
+      annualIncome:      document.getElementById('annualIncome'),
+      currentLimit:      document.getElementById('currentLimit'),
+      requestedIncrease: document.getElementById('requestedIncrease'),
+    };
+
+    /* ── Validation rules ───────────────────────────────────────────── */
+    const rules = {
+      customerID:        v => v.trim().length > 0,
+      fullName:          v => v.trim().length > 0,
+      channel:           v => v !== '',
+      creditScore:       v => { const n = Number(v); return !isNaN(n) && n >= 300 && n <= 850; },
+      annualIncome:      v => { const n = Number(v); return !isNaN(n) && n > 0; },
+      currentLimit:      v => { const n = Number(v); return !isNaN(n) && n >= 0; },
+      requestedIncrease: v => { const n = Number(v); return !isNaN(n) && n > 0; },
+    };
+
+    function validateField(name) {
+      const el  = fields[name];
+      const err = document.getElementById(name + '-err');
+      const ok  = rules[name](el.value);
+      el.classList.toggle('invalid', !ok);
+      if (err) err.classList.toggle('visible', !ok);
+      return ok;
+    }
+
+    function validateAll() {
+      return Object.keys(rules).map(validateField).every(Boolean);
+    }
+
+    /* ── Live risk preview ──────────────────────────────────────────── */
+    function computeRisk() {
+      const score  = Number(fields.creditScore.value);
+      const income = Number(fields.annualIncome.value);
+      const limit  = Number(fields.currentLimit.value);
+      const req    = Number(fields.requestedIncrease.value);
+
+      if (!score || !income || isNaN(limit) || !req) {
+        preview.classList.remove('visible');
+        return;
+      }
+
+      let level, reason;
+      if (score < 650) {
+        level  = 'AUTO_REJECT';
+        reason = 'Credit score below minimum threshold (< 650)';
+      } else if (income > 0 && limit > income * 0.50) {
+        level  = 'HIGH_RISK';
+        reason = 'High exposure ratio — current limit exceeds 50% of annual income';
+      } else if (income > 0 && req > (income + limit) * 0.30) {
+        level  = 'HIGH_RISK';
+        reason = 'Requested increase exceeds 30% of financial capacity';
+      } else {
+        level  = 'LOW_RISK';
+        reason = 'All automated rules passed — eligible for auto-approval';
+      }
+
+      const cls = { AUTO_REJECT: 'reject', HIGH_RISK: 'high', LOW_RISK: 'low' }[level];
+      const lbl = { AUTO_REJECT: '✕ Auto-Reject', HIGH_RISK: '⚠ High Risk — Manual Review', LOW_RISK: '✓ Low Risk — Auto-Approve' }[level];
+
+      riskBadge.className = 'risk-badge ' + cls;
+      riskBadge.textContent = lbl;
+      riskReason.textContent = reason;
+      preview.classList.add('visible');
+    }
+
+    ['creditScore', 'annualIncome', 'currentLimit', 'requestedIncrease'].forEach(name => {
+      fields[name].addEventListener('input', computeRisk);
+    });
+
+    /* ── Blur validation ────────────────────────────────────────────── */
+    Object.keys(fields).forEach(name => {
+      fields[name].addEventListener('blur', () => validateField(name));
+    });
+
+    /* ── Submit ─────────────────────────────────────────────────────── */
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!validateAll()) {
+        const first = Object.keys(fields).find(n => !rules[n](fields[n].value));
+        if (first) fields[first].focus();
+        return;
+      }
+
+      const customerInfo = {
+        customerID:        fields.customerID.value.trim(),
+        fullName:          fields.fullName.value.trim(),
+        channel:           fields.channel.value,
+        creditScore:       parseInt(fields.creditScore.value, 10),
+        annualIncome:      parseFloat(fields.annualIncome.value),
+        currentLimit:      parseFloat(fields.currentLimit.value),
+        requestedIncrease: parseFloat(fields.requestedIncrease.value),
+        submissionDate:    new Date().toISOString(),
+      };
+
+      submitToBAW(customerInfo);
+    });
+
+    /* ── Clear ──────────────────────────────────────────────────────── */
+    document.getElementById('btnClear').addEventListener('click', () => {
+      Object.values(fields).forEach(el => { el.value = ''; el.classList.remove('invalid'); });
+      document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('visible'));
+      preview.classList.remove('visible');
+    });
+
+    /* ── BAW integration stub ───────────────────────────────────────── */
+    function submitToBAW(customerInfo) {
+      /*
+        REPLACE THIS STUB with the actual BAW coach finish call:
+
+          tw.local.customerInfo.customerID        = customerInfo.customerID;
+          tw.local.customerInfo.fullName          = customerInfo.fullName;
+          tw.local.customerInfo.channel           = customerInfo.channel;
+          tw.local.customerInfo.creditScore       = customerInfo.creditScore;
+          tw.local.customerInfo.annualIncome      = customerInfo.annualIncome;
+          tw.local.customerInfo.currentLimit      = customerInfo.currentLimit;
+          tw.local.customerInfo.requestedIncrease = customerInfo.requestedIncrease;
+          tw.local.customerInfo.submissionDate    = new Date();
+          tw.coach.finish();
+
+        In Process Designer, use the CSHS data mapping panel to wire the
+        CustomerInfo variable directly instead of manual tw.local assignment.
+      */
+      console.log('[CLIR Coach] submitToBAW called. customerInfo:', JSON.stringify(customerInfo, null, 2));
+      alert('Coach ready — replace submitToBAW() stub with tw.coach.finish() in Process Designer.');
+    }
+  </script>
+
+</body>
+</html>

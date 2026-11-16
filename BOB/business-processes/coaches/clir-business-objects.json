@@ -1,0 +1,112 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "CLIR Credit Line Increase Request Business Objects",
+    "description": "Business objects for the Credit Line Increase Request (CLIR) process application. Covers customer submission data, risk engine output, and the final approval decision.",
+    "version": "1.0.0"
+  },
+  "components": {
+    "schemas": {
+      "RiskAssessment": {
+        "type": "object",
+        "description": "Output of the Risk Assessment Engine. Drives gateway routing and is included in all audit events.",
+        "properties": {
+          "riskLevel": {
+            "type": "string",
+            "description": "Evaluation result. Values: LOW_RISK, HIGH_RISK, AUTO_REJECT"
+          },
+          "riskReason": {
+            "type": "string",
+            "description": "Detailed reason code or description for evaluation result"
+          },
+          "autoApproved": {
+            "type": "boolean",
+            "description": "True only when riskLevel is LOW_RISK and automated approval is granted"
+          },
+          "assessedDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the risk engine evaluated this request"
+          },
+          "engineVersion": {
+            "type": "string",
+            "description": "Version of the risk rule engine that produced this assessment"
+          }
+        },
+        "required": ["riskLevel"]
+      },
+      "ApprovalDecision": {
+        "type": "object",
+        "description": "Final credit line decision, set by the system (auto-approval) or an underwriter.",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Final decision. Values: APPROVED, REJECTED, PENDING_UNDERWRITER"
+          },
+          "approvedAmount": {
+            "type": "number",
+            "description": "Final sanctioned credit limit amount"
+          },
+          "approverComments": {
+            "type": "string",
+            "description": "Notes and rationale from underwriter or system engine"
+          },
+          "processedBy": {
+            "type": "string",
+            "description": "User ID of the underwriter, or SYSTEM for automated decisions"
+          },
+          "decisionTimestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the decision was recorded"
+          },
+          "bankingTxId": {
+            "type": "string",
+            "description": "Transaction ID returned by the Core Banking API on successful limit update"
+          }
+        },
+        "required": ["status"]
+      },
+      "CustomerInfo": {
+        "type": "object",
+        "description": "Customer data submitted in the credit line increase request form.",
+        "properties": {
+          "customerID": {
+            "type": "string",
+            "description": "Unique customer identifier, e.g. CUST-9942"
+          },
+          "fullName": {
+            "type": "string",
+            "description": "Full legal name of the account holder"
+          },
+          "creditScore": {
+            "type": "integer",
+            "description": "Bureau credit score rating, range 300-850"
+          },
+          "annualIncome": {
+            "type": "number",
+            "description": "Verified gross annual income"
+          },
+          "currentLimit": {
+            "type": "number",
+            "description": "Existing active credit limit"
+          },
+          "requestedIncrease": {
+            "type": "number",
+            "description": "Target requested credit limit (the increase amount, not the new total)"
+          },
+          "submissionDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the request was submitted"
+          },
+          "channel": {
+            "type": "string",
+            "description": "Intake channel. Values: CSR, SELF_SERVICE"
+          }
+        },
+        "required": ["customerID", "fullName", "creditScore", "annualIncome", "currentLimit", "requestedIncrease"]
+      }
+    }
+  }
+}

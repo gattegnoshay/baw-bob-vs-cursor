@@ -1,0 +1,39 @@
+{
+  "processApp": "CLIR",
+  "process": "Credit Line Increase Request",
+  "source": {
+    "pdd": "IBM_BAW_PDD_Credit_Line_Increase.docx",
+    "processConfig": "business-processes/configs/CLIR.CreditLineIncreaseRequest.bpmn.json",
+    "businessObjects": "business-processes/business-objects/clir-credit-line-increase-business-objects.json"
+  },
+  "formatNotes": {
+    "supportedInThisWorkspace": [
+      "Coach design specs (JSON) for WebPD stock control binding",
+      "Client-side validation / load / before-complete JavaScript (paste into CSHS coach views)",
+      "Reference HTML + CSS for Optional Custom HTML coach views",
+      "CSHS formDefinition design intent (documentation; not a standalone TWX import)",
+      "Coach test assertions (manual) aligned with generate-baw-tests format"
+    ],
+    "notAvailable": [
+      "create-baw-coach / create-baw-widget skills (referenced by generate-baw-bpmn but not installed)",
+      "Binary TWX packaging of CSHS with System Data stock control UUIDs"
+    ],
+    "recommendedInstallPath": "After BPMN import, open the auto-generated Client-Side Human Services and apply these specs/scripts in Web Process Designer."
+  },
+  "coaches": [
+    {
+      "id": "submit-credit-line-increase-request",
+      "humanTask": "Submit Credit Line Increase Request",
+      "role": "Customer / Agent",
+      "cshsName": "Submit Credit Line Increase Request",
+      "folder": "submit-credit-line-increase-request"
+    },
+    {
+      "id": "underwriter-manual-review",
+      "humanTask": "Underwriter Manual Review",
+      "role": "Underwriter Team (Underwriter_Group)",
+      "cshsName": "Underwriter Manual Review",
+      "folder": "underwriter-manual-review"
+    }
+  ]
+}

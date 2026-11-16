@@ -1,0 +1,70 @@
+{
+  "processType": 10,
+  "name": "Underwriter Manual Review",
+  "description": "CSHS for the Underwriter Manual Review human task. Coach layout is the reusable Coach View 'CLIR Underwriter Review Form'.",
+  "ioSpecification": {
+    "dataInput": [
+      { "name": "customerInfo", "type": "CustomerInfo" },
+      { "name": "riskAssessment", "type": "RiskAssessment" },
+      { "name": "approvalDecision", "type": "ApprovalDecision" }
+    ],
+    "dataOutput": [
+      { "name": "approvalDecision", "type": "ApprovalDecision" },
+      { "name": "customerInfo", "type": "CustomerInfo" }
+    ]
+  },
+  "coachViews": [
+    {
+      "name": "CLIR Underwriter Review Form",
+      "sourcePath": "../coach-views/CLIR_UnderwriterReviewForm",
+      "binding": "tw.local.approvalDecision",
+      "configBindings": {
+        "customerInfo": "tw.local.customerInfo",
+        "riskAssessment": "tw.local.riskAssessment"
+      },
+      "files": {
+        "html": "../coach-views/CLIR_UnderwriterReviewForm/content.html",
+        "css": "../coach-views/CLIR_UnderwriterReviewForm/styles.css",
+        "load": "../coach-views/CLIR_UnderwriterReviewForm/handlers/load.js",
+        "view": "../coach-views/CLIR_UnderwriterReviewForm/handlers/view.js",
+        "change": "../coach-views/CLIR_UnderwriterReviewForm/handlers/change.js",
+        "validate": "../coach-views/CLIR_UnderwriterReviewForm/handlers/validate.js"
+      }
+    }
+  ],
+  "flow": [
+    { "declaredType": "startEvent", "id": "start", "name": "Start" },
+    {
+      "declaredType": "com.ibm.bpmsdk.model.bpmn20.ibmext.TFormTask",
+      "id": "coach-underwriter",
+      "name": "Underwriter Review Coach",
+      "formDefinition": {
+        "coachDefinition": {
+          "layout": {
+            "layoutItem": [
+              {
+                "controlType": "CoachView",
+                "coachViewName": "CLIR Underwriter Review Form",
+                "label": "Manual Credit Review",
+                "binding": "tw.local.approvalDecision",
+                "configBindings": {
+                  "customerInfo": "tw.local.customerInfo",
+                  "riskAssessment": "tw.local.riskAssessment"
+                },
+                "required": true
+              }
+            ]
+          }
+        }
+      },
+      "boundaryEvents": [
+        { "name": "OK", "isDefault": true }
+      ]
+    },
+    { "declaredType": "endEvent", "id": "end-ok", "name": "Review Complete" }
+  ],
+  "sequenceFlows": [
+    { "sourceRef": "start", "targetRef": "coach-underwriter" },
+    { "sourceRef": "coach-underwriter", "targetRef": "end-ok", "boundaryEvent": "OK" }
+  ]
+}

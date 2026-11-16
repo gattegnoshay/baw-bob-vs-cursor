@@ -1,0 +1,15 @@
+# Secrets
+.env
+**/.env
+**/conn.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.tmp
+.vscode/
+.idea/
+
+# Copilot Studio local sync noise (keep YAML; ignore tokens)
+**/.mcs/changetoken.txt
+**/node_modules/

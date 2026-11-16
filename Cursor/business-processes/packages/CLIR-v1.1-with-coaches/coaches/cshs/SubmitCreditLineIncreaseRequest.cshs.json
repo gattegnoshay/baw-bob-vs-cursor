@@ -1,0 +1,62 @@
+{
+  "processType": 10,
+  "name": "Submit Credit Line Increase Request",
+  "description": "CSHS for the Submit Credit Line Increase Request human task. Coach layout is the reusable Coach View 'CLIR Customer Info Form'.",
+  "ioSpecification": {
+    "dataInput": [
+      { "name": "customerInfo", "type": "CustomerInfo" }
+    ],
+    "dataOutput": [
+      { "name": "customerInfo", "type": "CustomerInfo" }
+    ]
+  },
+  "coachViews": [
+    {
+      "name": "CLIR Customer Info Form",
+      "sourcePath": "../coach-views/CLIR_CustomerInfoForm",
+      "binding": "tw.local.customerInfo",
+      "files": {
+        "html": "../coach-views/CLIR_CustomerInfoForm/content.html",
+        "css": "../coach-views/CLIR_CustomerInfoForm/styles.css",
+        "load": "../coach-views/CLIR_CustomerInfoForm/handlers/load.js",
+        "view": "../coach-views/CLIR_CustomerInfoForm/handlers/view.js",
+        "change": "../coach-views/CLIR_CustomerInfoForm/handlers/change.js",
+        "validate": "../coach-views/CLIR_CustomerInfoForm/handlers/validate.js"
+      }
+    }
+  ],
+  "flow": [
+    { "declaredType": "startEvent", "id": "start", "name": "Start" },
+    {
+      "declaredType": "com.ibm.bpmsdk.model.bpmn20.ibmext.TFormTask",
+      "id": "coach-submit",
+      "name": "Submit Request Coach",
+      "formDefinition": {
+        "coachDefinition": {
+          "layout": {
+            "layoutItem": [
+              {
+                "controlType": "CoachView",
+                "coachViewName": "CLIR Customer Info Form",
+                "label": "Credit Line Increase Request",
+                "binding": "tw.local.customerInfo",
+                "required": true
+              }
+            ]
+          }
+        }
+      },
+      "boundaryEvents": [
+        { "name": "OK", "isDefault": true },
+        { "name": "Cancel" }
+      ]
+    },
+    { "declaredType": "endEvent", "id": "end-ok", "name": "Submitted" },
+    { "declaredType": "endEvent", "id": "end-cancel", "name": "Cancelled" }
+  ],
+  "sequenceFlows": [
+    { "sourceRef": "start", "targetRef": "coach-submit" },
+    { "sourceRef": "coach-submit", "targetRef": "end-ok", "boundaryEvent": "OK" },
+    { "sourceRef": "coach-submit", "targetRef": "end-cancel", "boundaryEvent": "Cancel" }
+  ]
+}

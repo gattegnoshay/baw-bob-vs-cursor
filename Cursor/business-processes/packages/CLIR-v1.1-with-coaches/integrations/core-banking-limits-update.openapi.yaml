@@ -1,0 +1,63 @@
+openapi: 3.0.3
+info:
+  title: Core Banking Credit Limit Update
+  description: >
+    External REST service for CLIR Step 3 — Update Credit Limit.
+    Import as an External Service in BAW WebPD and map from the
+    "Update Credit Limit" service flow.
+  version: 1.0.0
+servers:
+  - url: https://api.bank.internal/v1
+paths:
+  /limits/update:
+    post:
+      operationId: updateCreditLimit
+      summary: Update an account holder's credit limit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LimitUpdateRequest'
+            example:
+              accountHolderId: CUST-9942
+              newCreditLimit: 25000
+              approvalSource: BAW_AUTO_APPROVAL
+      responses:
+        '200':
+          description: Limit update accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LimitUpdateResponse'
+        '400':
+          description: Invalid request
+        '500':
+          description: Core banking failure
+components:
+  schemas:
+    LimitUpdateRequest:
+      type: object
+      required: [accountHolderId, newCreditLimit, approvalSource]
+      properties:
+        accountHolderId:
+          type: string
+          description: Maps from tw.local.customerInfo.customerID
+        newCreditLimit:
+          type: number
+          description: >
+            Maps from tw.local.approvalDecision.approvedAmount
+            (fallback tw.local.customerInfo.requestedIncrease)
+        approvalSource:
+          type: string
+          description: BAW_AUTO_APPROVAL or BAW_UNDERWRITER_APPROVAL
+    LimitUpdateResponse:
+      type: object
+      properties:
+        txStatus:
+          type: string
+          description: Map into tw.local.approvalDecision.status on HTTP 200
+        transactionId:
+          type: string
+        message:
+          type: string

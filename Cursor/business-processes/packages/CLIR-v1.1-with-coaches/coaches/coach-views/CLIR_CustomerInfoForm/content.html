@@ -1,0 +1,63 @@
+<div class="clir-cif" data-coach-view="CLIR_CustomerInfoForm">
+  <header class="clir-cif__header">
+    <p class="clir-cif__eyebrow">CLIR</p>
+    <h1 class="clir-cif__title" data-role="title">Credit Line Increase Request</h1>
+    <p class="clir-cif__subtitle">
+      Enter the account holder details and the requested credit limit.
+    </p>
+  </header>
+
+  <div class="clir-cif__banner clir-cif__banner--error" data-role="errors" hidden role="alert" aria-live="polite"></div>
+
+  <div class="clir-cif__panel">
+    <div class="clir-cif__grid">
+      <div class="clir-cif__field">
+        <label class="clir-cif__label" for="clir-cif-customerID">Customer ID</label>
+        <input class="clir-cif__input" id="clir-cif-customerID" name="customerID" type="text"
+               autocomplete="off" placeholder="CUST-9942" data-field="customerID" />
+      </div>
+
+      <div class="clir-cif__field">
+        <label class="clir-cif__label" for="clir-cif-fullName">Full Name</label>
+        <input class="clir-cif__input" id="clir-cif-fullName" name="fullName" type="text"
+               autocomplete="name" data-field="fullName" />
+      </div>
+
+      <div class="clir-cif__field">
+        <label class="clir-cif__label" for="clir-cif-creditScore">Credit Score</label>
+        <input class="clir-cif__input" id="clir-cif-creditScore" name="creditScore" type="number"
+               min="300" max="850" step="1" data-field="creditScore" />
+        <span class="clir-cif__hint">Bureau range 300–850</span>
+      </div>
+
+      <div class="clir-cif__field">
+        <label class="clir-cif__label" for="clir-cif-annualIncome">Annual Income</label>
+        <input class="clir-cif__input" id="clir-cif-annualIncome" name="annualIncome" type="number"
+               min="0" step="0.01" data-field="annualIncome" />
+        <span class="clir-cif__hint">Must be greater than 0</span>
+      </div>
+
+      <div class="clir-cif__field">
+        <label class="clir-cif__label" for="clir-cif-currentLimit">Current Credit Limit</label>
+        <input class="clir-cif__input" id="clir-cif-currentLimit" name="currentLimit" type="number"
+               min="0" step="0.01" data-field="currentLimit" />
+      </div>
+
+      <div class="clir-cif__field">
+        <label class="clir-cif__label" for="clir-cif-requestedIncrease">Requested Credit Limit</label>
+        <input class="clir-cif__input" id="clir-cif-requestedIncrease" name="requestedIncrease" type="number"
+               min="0" step="0.01" data-field="requestedIncrease" />
+        <span class="clir-cif__hint">Must be greater than current limit</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="clir-cif__actions">
+    <button type="button" class="clir-cif__btn clir-cif__btn--primary" data-action="submit">
+      Submit Request
+    </button>
+    <button type="button" class="clir-cif__btn clir-cif__btn--ghost" data-action="cancel" data-role="cancel">
+      Cancel
+    </button>
+  </div>
+</div>

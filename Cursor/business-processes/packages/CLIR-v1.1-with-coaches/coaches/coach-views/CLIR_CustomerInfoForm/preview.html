@@ -1,0 +1,536 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CLIR_CustomerInfoForm — Coach View Preview</title>
+  <style>
+.clir-cif {
+  --clir-ink: #142033;
+  --clir-muted: #5b6b7c;
+  --clir-line: #d5dee8;
+  --clir-panel: #f7fafc;
+  --clir-accent: #0b5cab;
+  --clir-accent-dark: #084780;
+  --clir-danger: #b42318;
+  --clir-danger-bg: #fef3f2;
+  font-family: "IBM Plex Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color: var(--clir-ink);
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 1.25rem;
+  background:
+    radial-gradient(circle at top right, rgba(11, 92, 171, 0.08), transparent 40%),
+    linear-gradient(180deg, #ffffff 0%, #f4f7fb 100%);
+  border: 1px solid var(--clir-line);
+  border-radius: 12px;
+}
+
+.clir-cif__eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--clir-accent);
+}
+
+.clir-cif__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.55rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.clir-cif__subtitle {
+  margin: 0 0 1.1rem;
+  color: var(--clir-muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.clir-cif__panel {
+  background: var(--clir-panel);
+  border: 1px solid var(--clir-line);
+  border-radius: 10px;
+  padding: 1rem 1.1rem 1.15rem;
+}
+
+.clir-cif__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem 1.15rem;
+}
+
+.clir-cif__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.clir-cif__label {
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.clir-cif__input {
+  border: 1px solid #b8c4d4;
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.95rem;
+  background: #fff;
+  color: var(--clir-ink);
+}
+
+.clir-cif__input:focus {
+  outline: 2px solid rgba(11, 92, 171, 0.28);
+  border-color: var(--clir-accent);
+}
+
+.clir-cif__input.is-invalid {
+  border-color: var(--clir-danger);
+  background: #fff8f7;
+}
+
+.clir-cif__hint {
+  font-size: 0.74rem;
+  color: var(--clir-muted);
+}
+
+.clir-cif__banner {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.clir-cif__banner--error {
+  border-left: 4px solid var(--clir-danger);
+  background: var(--clir-danger-bg);
+  color: #7a271a;
+}
+
+.clir-cif__banner[hidden] {
+  display: none !important;
+}
+
+.clir-cif__actions {
+  display: flex;
+  gap: 0.7rem;
+  margin-top: 1.15rem;
+}
+
+.clir-cif__btn {
+  border: 0;
+  border-radius: 6px;
+  padding: 0.6rem 1.15rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.clir-cif__btn--primary {
+  background: var(--clir-accent);
+  color: #fff;
+}
+
+.clir-cif__btn--primary:hover {
+  background: var(--clir-accent-dark);
+}
+
+.clir-cif__btn--ghost {
+  background: #e8eef5;
+  color: var(--clir-ink);
+}
+
+@media (max-width: 640px) {
+  .clir-cif__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .clir-cif__actions {
+    flex-direction: column;
+  }
+}
+
+    body { margin: 0; background: #e9eef5; }
+    .preview-shell { max-width: 980px; margin: 0 auto; padding: 1.5rem; }
+    .preview-note {
+      margin-bottom: 1rem; padding: 0.75rem 1rem; border-radius: 8px;
+      background: #fff; border: 1px solid #d5dee8; color: #334155; font: 14px/1.4 Segoe UI, sans-serif;
+    }
+    .preview-debug {
+      margin-top: 1rem; padding: 0.75rem 1rem; border-radius: 8px;
+      background: #0f172a; color: #e2e8f0; font: 12px/1.45 Consolas, monospace;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-shell">
+    <div class="preview-note">
+      Interactive preview of the <strong>CLIR_CustomerInfoForm</strong> Coach View component.
+      Validation and binding sync run in a mock BAW context. Paste the same HTML/CSS/handlers into WebPD Coach View.
+    </div>
+    <div id="coach-root">
+<div class="clir-cif" data-coach-view="CLIR_CustomerInfoForm">
+  <header class="clir-cif__header">
+    <p class="clir-cif__eyebrow">CLIR</p>
+    <h1 class="clir-cif__title" data-role="title">Credit Line Increase Request</h1>
+    <p class="clir-cif__subtitle">
+      Enter the account holder details and the requested credit limit.
+    </p>
+  </header>
+
+  <div class="clir-cif__banner clir-cif__banner--error" data-role="errors" hidden role="alert" aria-live="polite"></div>
+
+  <div class="clir-cif__panel">
+    <div class="clir-cif__grid">
+      <div class="clir-cif__field">
+        <label class="clir-cif__label" for="clir-cif-customerID">Customer ID</label>
+        <input class="clir-cif__input" id="clir-cif-customerID" name="customerID" type="text"
+               autocomplete="off" placeholder="CUST-9942" data-field="customerID" />
+      </div>
+
+      <div class="clir-cif__field">
+        <label class="clir-cif__label" for="clir-cif-fullName">Full Name</label>
+        <input class="clir-cif__input" id="clir-cif-fullName" name="fullName" type="text"
+               autocomplete="name" data-field="fullName" />
+      </div>
+
+      <div class="clir-cif__field">
+        <label class="clir-cif__label" for="clir-cif-creditScore">Credit Score</label>
+        <input class="clir-cif__input" id="clir-cif-creditScore" name="creditScore" type="number"
+               min="300" max="850" step="1" data-field="creditScore" />
+        <span class="clir-cif__hint">Bureau range 300â€“850</span>
+      </div>
+
+      <div class="clir-cif__field">
+        <label class="clir-cif__label" for="clir-cif-annualIncome">Annual Income</label>
+        <input class="clir-cif__input" id="clir-cif-annualIncome" name="annualIncome" type="number"
+               min="0" step="0.01" data-field="annualIncome" />
+        <span class="clir-cif__hint">Must be greater than 0</span>
+      </div>
+
+      <div class="clir-cif__field">
+        <label class="clir-cif__label" for="clir-cif-currentLimit">Current Credit Limit</label>
+        <input class="clir-cif__input" id="clir-cif-currentLimit" name="currentLimit" type="number"
+               min="0" step="0.01" data-field="currentLimit" />
+      </div>
+
+      <div class="clir-cif__field">
+        <label class="clir-cif__label" for="clir-cif-requestedIncrease">Requested Credit Limit</label>
+        <input class="clir-cif__input" id="clir-cif-requestedIncrease" name="requestedIncrease" type="number"
+               min="0" step="0.01" data-field="requestedIncrease" />
+        <span class="clir-cif__hint">Must be greater than current limit</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="clir-cif__actions">
+    <button type="button" class="clir-cif__btn clir-cif__btn--primary" data-action="submit">
+      Submit Request
+    </button>
+    <button type="button" class="clir-cif__btn clir-cif__btn--ghost" data-action="cancel" data-role="cancel">
+      Cancel
+    </button>
+  </div>
+</div>
+
+    </div>
+    <pre class="preview-debug" id="debug"></pre>
+  </div>
+  <script>
+    (function () {
+      var store = {"value":{"customerID":"","fullName":"","creditScore":null,"annualIncome":null,"currentLimit":null,"requestedIncrease":null,"status":""}};
+      var optionStore = {"showCancelButton":true,"title":"Credit Line Increase Request"};
+
+      function makeBinding(objRef) {
+        return {
+          get: function (key) { return key === "value" ? objRef.value : undefined; },
+          set: function (key, val) { if (key === "value") { objRef.value = val; refreshDebug(); } }
+        };
+      }
+
+      function makeOptions(map) {
+        var out = {};
+        Object.keys(map).forEach(function (k) {
+          out[k] = {
+            get: function (key) { return key === "value" ? map[k] : undefined; }
+          };
+        });
+        return out;
+      }
+
+      var ctx = {
+        element: document.querySelector("#coach-root [data-coach-view]"),
+        binding: makeBinding(store),
+        options: makeOptions(optionStore)
+      };
+
+      function refreshDebug() {
+        document.getElementById("debug").textContent =
+          "binding.value = " + JSON.stringify(store.value, null, 2) +
+          "\n\noptions = " + JSON.stringify(optionStore, null, 2);
+      }
+
+      var api = { context: ctx };
+      api.change = function () { /**
+ * CLIR Customer Info Form â€” Coach View change handler
+ * Paste into Behavior > Event Handlers > change
+ * Writes DOM field values back into the CustomerInfo binding.
+ */
+(function () {
+  var root = this.context.element;
+  var binding = this.context.binding;
+  var data = (binding && binding.get) ? (binding.get("value") || {}) : {};
+
+  function readString(name) {
+    var input = root.querySelector('[data-field="' + name + '"]');
+    return input ? String(input.value || "").replace(/^\s+|\s+$/g, "") : "";
+  }
+
+  function readNumber(name, asInt) {
+    var input = root.querySelector('[data-field="' + name + '"]');
+    if (!input || input.value === "") {
+      return null;
+    }
+    return asInt ? parseInt(input.value, 10) : Number(input.value);
+  }
+
+  data.customerID = readString("customerID");
+  data.fullName = readString("fullName");
+  data.creditScore = readNumber("creditScore", true);
+  data.annualIncome = readNumber("annualIncome", false);
+  data.currentLimit = readNumber("currentLimit", false);
+  data.requestedIncrease = readNumber("requestedIncrease", false);
+
+  if (binding && binding.set) {
+    binding.set("value", data);
+  }
+}).call(api); refreshDebug(); };
+      api.validate = function () { return /**
+ * CLIR Customer Info Form â€” Coach View validate handler
+ * Paste into Behavior > Event Handlers > validate
+ * Returns "" when valid; otherwise an error string (BAW convention).
+ */
+(function () {
+  var root = this.context.element;
+  var binding = this.context.binding;
+  var data = (binding && binding.get) ? (binding.get("value") || {}) : {};
+  var errors = [];
+
+  function mark(name, invalid) {
+    var input = root.querySelector('[data-field="' + name + '"]');
+    if (!input) {
+      return;
+    }
+    if (invalid) {
+      input.className = (input.className || "").replace(/\bis-invalid\b/g, "") + " is-invalid";
+    } else {
+      input.className = (input.className || "").replace(/\bis-invalid\b/g, "").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
+    }
+  }
+
+  function blank(v) {
+    return v === undefined || v === null || String(v).replace(/^\s+|\s+$/g, "") === "";
+  }
+
+  mark("customerID", blank(data.customerID));
+  mark("fullName", blank(data.fullName));
+  mark("creditScore", data.creditScore === undefined || data.creditScore === null || isNaN(Number(data.creditScore)));
+  mark("annualIncome", data.annualIncome === undefined || data.annualIncome === null || isNaN(Number(data.annualIncome)));
+  mark("currentLimit", data.currentLimit === undefined || data.currentLimit === null || isNaN(Number(data.currentLimit)));
+  mark("requestedIncrease", data.requestedIncrease === undefined || data.requestedIncrease === null || isNaN(Number(data.requestedIncrease)));
+
+  if (blank(data.customerID)) {
+    errors.push("Customer ID is required.");
+  }
+  if (blank(data.fullName)) {
+    errors.push("Full name is required.");
+  }
+
+  var score = Number(data.creditScore);
+  if (isNaN(score)) {
+    errors.push("Credit score is required.");
+  } else if (score < 300 || score > 850) {
+    errors.push("Credit score must be between 300 and 850.");
+    mark("creditScore", true);
+  }
+
+  var income = Number(data.annualIncome);
+  if (isNaN(income)) {
+    errors.push("Annual income is required.");
+  } else if (!(income > 0)) {
+    errors.push("Annual income must be greater than 0.");
+    mark("annualIncome", true);
+  }
+
+  var current = Number(data.currentLimit);
+  if (isNaN(current)) {
+    errors.push("Current credit limit is required.");
+  }
+
+  var requested = Number(data.requestedIncrease);
+  if (isNaN(requested)) {
+    errors.push("Requested credit limit is required.");
+  } else if (!isNaN(current) && !(requested > current)) {
+    errors.push("Requested credit limit must be greater than the current credit limit.");
+    mark("requestedIncrease", true);
+  }
+
+  var message = errors.join(" ");
+  var banner = root.querySelector('[data-role="errors"]');
+  if (banner) {
+    if (message) {
+      banner.hidden = false;
+      banner.textContent = message;
+    } else {
+      banner.hidden = true;
+      banner.textContent = "";
+    }
+  }
+
+  return message;
+}).call(api); };
+      api.view = function () { /**
+ * CLIR Customer Info Form â€” Coach View view handler
+ * Paste into Behavior > Event Handlers > view
+ * Pushes bound CustomerInfo values into the HTML inputs.
+ */
+(function () {
+  var root = this.context.element;
+  var binding = this.context.binding;
+  var data = (binding && binding.get) ? (binding.get("value") || {}) : {};
+
+  function setField(name, value) {
+    var input = root.querySelector('[data-field="' + name + '"]');
+    if (!input) {
+      return;
+    }
+    input.value = value === undefined || value === null ? "" : String(value);
+  }
+
+  setField("customerID", data.customerID);
+  setField("fullName", data.fullName);
+  setField("creditScore", data.creditScore);
+  setField("annualIncome", data.annualIncome);
+  setField("currentLimit", data.currentLimit);
+  setField("requestedIncrease", data.requestedIncrease);
+}).call(api); refreshDebug(); };
+      api.load = function () { /**
+ * CLIR Customer Info Form â€” Coach View load handler
+ * Paste into Behavior > Event Handlers > load
+ */
+(function () {
+  var root = this.context.element;
+  var binding = this.context.binding;
+  var options = this.context.options || {};
+  var self = this;
+
+  function getBound() {
+    var value = binding && binding.get ? binding.get("value") : null;
+    if (value === undefined || value === null) {
+      value = {};
+      if (binding && binding.set) {
+        binding.set("value", value);
+      }
+    }
+    return value;
+  }
+
+  function optionValue(name, fallback) {
+    try {
+      if (options[name] && options[name].get) {
+        var v = options[name].get("value");
+        return v === undefined || v === null ? fallback : v;
+      }
+    } catch (ignore) {}
+    return fallback;
+  }
+
+  var data = getBound();
+  if (!data.status) {
+    data.status = "";
+  }
+
+  var titleNode = root.querySelector('[data-role="title"]');
+  if (titleNode) {
+    titleNode.textContent = optionValue("title", "Credit Line Increase Request");
+  }
+
+  var cancelBtn = root.querySelector('[data-role="cancel"]');
+  if (cancelBtn && optionValue("showCancelButton", true) === false) {
+    cancelBtn.hidden = true;
+  }
+
+  // Keep DOM in sync when the user edits fields.
+  var fields = root.querySelectorAll("[data-field]");
+  for (var i = 0; i < fields.length; i++) {
+    (function (input) {
+      input.addEventListener("input", function () {
+        if (typeof self.change === "function") {
+          self.change();
+        } else if (self.context && typeof self.context.triggerChange === "function") {
+          self.context.triggerChange();
+        } else {
+          // Fallback when handlers are pasted as separate snippets.
+          var current = getBound();
+          var key = input.getAttribute("data-field");
+          var raw = input.value;
+          if (key === "creditScore") {
+            current[key] = raw === "" ? null : parseInt(raw, 10);
+          } else if (key === "annualIncome" || key === "currentLimit" || key === "requestedIncrease") {
+            current[key] = raw === "" ? null : Number(raw);
+          } else {
+            current[key] = raw;
+          }
+          if (binding && binding.set) {
+            binding.set("value", current);
+          }
+        }
+      });
+    })(fields[i]);
+  }
+
+  var submitBtn = root.querySelector('[data-action="submit"]');
+  if (submitBtn) {
+    submitBtn.addEventListener("click", function () {
+      var message = "";
+      if (typeof self.validate === "function") {
+        message = self.validate() || "";
+      }
+      var banner = root.querySelector('[data-role="errors"]');
+      if (message) {
+        if (banner) {
+          banner.hidden = false;
+          banner.textContent = message;
+        }
+        return;
+      }
+      if (banner) {
+        banner.hidden = true;
+        banner.textContent = "";
+      }
+      var current = getBound();
+      current.status = "SUBMITTED";
+      if (binding && binding.set) {
+        binding.set("value", current);
+      }
+      // In CSHS, wire this button to the OK boundary event after validate passes.
+      if (typeof page !== "undefined" && page.ui && typeof page.ui.get === "function") {
+        try {
+          // Optional: fire a named boundary event control if present.
+        } catch (ignore) {}
+      }
+    });
+  }
+}).call(api); api.view(); };
+
+      api.load();
+      refreshDebug();
+    })();
+  </script>
+</body>
+</html>

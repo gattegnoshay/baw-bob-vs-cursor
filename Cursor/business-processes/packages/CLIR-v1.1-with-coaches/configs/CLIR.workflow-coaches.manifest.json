@@ -1,0 +1,33 @@
+{
+  "processApp": "CLIR",
+  "process": "Credit Line Increase Request",
+  "snapshot": "1.1",
+  "humanTasks": [
+    {
+      "taskId": "task-submit",
+      "taskName": "Submit Credit Line Increase Request",
+      "cshsName": "Submit Credit Line Increase Request",
+      "coachView": {
+        "name": "CLIR Customer Info Form",
+        "path": "coaches/coach-views/CLIR_CustomerInfoForm",
+        "binding": "tw.local.customerInfo",
+        "bindingType": "CustomerInfo"
+      }
+    },
+    {
+      "taskId": "task-underwriter",
+      "taskName": "Underwriter Manual Review",
+      "cshsName": "Underwriter Manual Review",
+      "coachView": {
+        "name": "CLIR Underwriter Review Form",
+        "path": "coaches/coach-views/CLIR_UnderwriterReviewForm",
+        "binding": "tw.local.approvalDecision",
+        "bindingType": "ApprovalDecision",
+        "configBindings": {
+          "customerInfo": "tw.local.customerInfo",
+          "riskAssessment": "tw.local.riskAssessment"
+        }
+      }
+    }
+  ]
+}

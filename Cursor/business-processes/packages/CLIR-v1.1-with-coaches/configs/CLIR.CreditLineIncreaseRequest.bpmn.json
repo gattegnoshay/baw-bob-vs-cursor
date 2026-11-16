@@ -1,0 +1,270 @@
+{
+  "process": {
+    "name": "Credit Line Increase Request",
+    "processApp": "CLIR",
+    "snapshot": "1.1",
+    "description": "Automated credit line increase: customer/agent submits via Coach View 'CLIR Customer Info Form', system risk rules auto-approve or auto-reject, high-risk cases go to underwriter review via Coach View 'CLIR Underwriter Review Form' with a 24-hour SLA escalation, Core Banking REST updates the limit, and an audit event is dispatched."
+  },
+  "roles": [
+    { "id": "customer-agent", "name": "Customer / Agent", "type": "human" },
+    { "id": "underwriter", "name": "Underwriter Team", "type": "team" },
+    { "id": "system", "name": "System", "type": "system" }
+  ],
+  "elements": [
+    {
+      "id": "start",
+      "type": "startEvent",
+      "name": "Request Started"
+    },
+    {
+      "id": "task-submit",
+      "type": "userTask",
+      "name": "Submit Credit Line Increase Request",
+      "role": "customer-agent",
+      "documentation": "CSHS uses Coach View component 'CLIR Customer Info Form' (business-processes/coaches/coach-views/CLIR_CustomerInfoForm). Bind the Coach View to tw.local.customerInfo. Fields: customerID, fullName, creditScore, annualIncome, currentLimit, requestedIncrease. Client validate: annualIncome > 0; requestedIncrease > currentLimit; creditScore 300-850. On success sets customerInfo.status = SUBMITTED. Source: content.html + styles.css + handlers/load|view|change|validate.js."
+    },
+    {
+      "id": "sf-risk",
+      "type": "serviceTask",
+      "name": "Risk Assessment Engine",
+      "role": "system",
+      "documentation": "Server script / decision service flow. Rule 1: if creditScore < 650 -> riskLevel=AUTO_REJECT, autoApproved=false, riskReason='Credit score below minimum threshold', approvalDecision.status=REJECTED, processedBy='SYSTEM_RISK_ENGINE'. Rule 2: else if currentLimit > (annualIncome * 0.50) -> riskLevel=HIGH_RISK, autoApproved=false, riskReason='High exposure ratio', approvalDecision.status=PENDING_UNDERWRITER. Rule 3: else if requestedIncrease > (annualIncome + currentLimit) * 0.30 -> riskLevel=HIGH_RISK, autoApproved=false, riskReason='Requested increase exceeds 30% financial capacity', approvalDecision.status=PENDING_UNDERWRITER. Default: riskLevel=LOW_RISK, autoApproved=true, riskReason='Passed automated risk checks', approvalDecision.status=APPROVED, approvedAmount=requestedIncrease, processedBy='SYSTEM_RISK_ENGINE'."
+    },
+    {
+      "id": "gw-risk",
+      "type": "exclusiveGateway",
+      "name": "Risk Level?",
+      "documentation": "Routes on tw.local.riskAssessment.riskLevel. Values: AUTO_REJECT, LOW_RISK, HIGH_RISK."
+    },
+    {
+      "id": "sf-core-banking",
+      "type": "serviceTask",
+      "name": "Update Credit Limit",
+      "role": "system",
+      "documentation": "External Service (OpenAPI). POST https://api.bank.internal/v1/limits/update. Request: { accountHolderId: tw.local.customerInfo.customerID, newCreditLimit: tw.local.approvalDecision.approvedAmount || tw.local.customerInfo.requestedIncrease, approvalSource: tw.local.riskAssessment.autoApproved ? 'BAW_AUTO_APPROVAL' : 'BAW_UNDERWRITER_APPROVAL' }. Map HTTP 200 txStatus into tw.local.approvalDecision.status. Assumption: underwriter Approved also calls this REST (PDD ASCII only showed Core Banking on LOW_RISK path)."
+    },
+    {
+      "id": "err-core-banking",
+      "type": "boundaryEvent",
+      "name": "Core Banking Failed",
+      "eventDefinition": "error",
+      "attachedToRef": "sf-core-banking",
+      "documentation": "Error boundary on Core Banking REST. Route to audit with rejected/error outcome for recovery visibility."
+    },
+    {
+      "id": "task-underwriter",
+      "type": "userTask",
+      "name": "Underwriter Manual Review",
+      "role": "underwriter",
+      "documentation": "CSHS uses Coach View component 'CLIR Underwriter Review Form' (business-processes/coaches/coach-views/CLIR_UnderwriterReviewForm). Bind Coach View to tw.local.approvalDecision; config-bind customerInfo -> tw.local.customerInfo and riskAssessment -> tw.local.riskAssessment (read-only). Capture status APPROVED/REJECTED, approvedAmount, approverComments, processedBy. Assign to team Underwriter_Group. SLA: 24-hour non-interrupting timer boundary. Source: content.html + styles.css + handlers/load|view|change|validate.js."
+    },
+    {
+      "id": "timer-uw-sla",
+      "type": "boundaryEvent",
+      "name": "Underwriter SLA 24h",
+      "eventDefinition": "timer",
+      "attachedToRef": "task-underwriter",
+      "interrupting": false,
+      "documentation": "Non-interrupting timer. Duration: 24 hours (PT24H). On fire, trigger Manager Escalation Notification Email handler. Set timer duration in Process Designer after import."
+    },
+    {
+      "id": "sf-escalate",
+      "type": "serviceTask",
+      "name": "Manager Escalation Notify",
+      "role": "system",
+      "documentation": "Sends manager escalation notification email for overdue underwriter review. Sets approvalDecision.status = ESCALATED (extended beyond PDD enum for routing) and customerInfo.status = ESCALATED."
+    },
+    {
+      "id": "gw-uw",
+      "type": "exclusiveGateway",
+      "name": "Underwriter Outcome?",
+      "documentation": "Routes on tw.local.approvalDecision.status after underwriter review."
+    },
+    {
+      "id": "sf-audit",
+      "type": "serviceTask",
+      "name": "Dispatch Audit Log",
+      "role": "system",
+      "documentation": "Formats JSON audit payload with system timestamp, process instance ID, customerID, riskLevel, and final approvalDecision. Writes to system log and/or HTTP audit endpoint."
+    },
+    {
+      "id": "gw-final",
+      "type": "exclusiveGateway",
+      "name": "Final Outcome?",
+      "documentation": "Routes to the named end event matching the terminal decision."
+    },
+    { "id": "end-auto-rejected", "type": "endEvent", "name": "Auto-Rejected" },
+    { "id": "end-auto-approved", "type": "endEvent", "name": "Auto-Approved" },
+    { "id": "end-uw-approved", "type": "endEvent", "name": "Underwriter-Approved" },
+    { "id": "end-uw-rejected", "type": "endEvent", "name": "Underwriter-Rejected" },
+    { "id": "end-escalated", "type": "endEvent", "name": "Escalated" },
+    { "id": "end-integration-error", "type": "endEvent", "name": "Integration-Error" }
+  ],
+  "flows": [
+    { "id": "f1", "sourceRef": "start", "targetRef": "task-submit" },
+    { "id": "f2", "sourceRef": "task-submit", "targetRef": "sf-risk" },
+    { "id": "f3", "sourceRef": "sf-risk", "targetRef": "gw-risk" },
+
+    {
+      "id": "f4",
+      "sourceRef": "gw-risk",
+      "targetRef": "sf-audit",
+      "name": "AUTO_REJECT",
+      "condition": "tw.local.riskAssessment.riskLevel == \"AUTO_REJECT\""
+    },
+    {
+      "id": "f5",
+      "sourceRef": "gw-risk",
+      "targetRef": "sf-core-banking",
+      "name": "LOW_RISK",
+      "condition": "tw.local.riskAssessment.riskLevel == \"LOW_RISK\""
+    },
+    {
+      "id": "f6",
+      "sourceRef": "gw-risk",
+      "targetRef": "task-underwriter",
+      "name": "HIGH_RISK",
+      "isDefault": true
+    },
+
+    { "id": "f7", "sourceRef": "sf-core-banking", "targetRef": "sf-audit" },
+    {
+      "id": "f8",
+      "sourceRef": "err-core-banking",
+      "targetRef": "sf-audit",
+      "name": "REST Error"
+    },
+
+    { "id": "f9", "sourceRef": "task-underwriter", "targetRef": "gw-uw" },
+    {
+      "id": "f10",
+      "sourceRef": "gw-uw",
+      "targetRef": "sf-core-banking",
+      "name": "Approved",
+      "condition": "tw.local.approvalDecision.status == \"APPROVED\""
+    },
+    {
+      "id": "f11",
+      "sourceRef": "gw-uw",
+      "targetRef": "sf-audit",
+      "name": "Rejected",
+      "isDefault": true
+    },
+
+    { "id": "f12", "sourceRef": "timer-uw-sla", "targetRef": "sf-escalate" },
+    { "id": "f13", "sourceRef": "sf-escalate", "targetRef": "end-escalated" },
+
+    { "id": "f14", "sourceRef": "sf-audit", "targetRef": "gw-final" },
+    {
+      "id": "f15",
+      "sourceRef": "gw-final",
+      "targetRef": "end-auto-rejected",
+      "name": "Auto-Rejected",
+      "condition": "tw.local.riskAssessment.riskLevel == \"AUTO_REJECT\""
+    },
+    {
+      "id": "f16",
+      "sourceRef": "gw-final",
+      "targetRef": "end-auto-approved",
+      "name": "Auto-Approved",
+      "condition": "tw.local.riskAssessment.riskLevel == \"LOW_RISK\" && tw.local.approvalDecision.status == \"APPROVED\""
+    },
+    {
+      "id": "f17",
+      "sourceRef": "gw-final",
+      "targetRef": "end-uw-approved",
+      "name": "Underwriter-Approved",
+      "condition": "tw.local.riskAssessment.riskLevel == \"HIGH_RISK\" && tw.local.approvalDecision.status == \"APPROVED\""
+    },
+    {
+      "id": "f18",
+      "sourceRef": "gw-final",
+      "targetRef": "end-integration-error",
+      "name": "Integration-Error",
+      "condition": "tw.local.approvalDecision.status == \"INTEGRATION_ERROR\""
+    },
+    {
+      "id": "f19",
+      "sourceRef": "gw-final",
+      "targetRef": "end-uw-rejected",
+      "name": "Underwriter-Rejected",
+      "isDefault": true
+    }
+  ],
+  "variables": [
+    {
+      "name": "customerInfo",
+      "type": "CustomerInfo",
+      "description": "Primary credit line increase request payload captured at submission.",
+      "outputFrom": ["task-submit"],
+      "inputTo": [
+        "sf-risk",
+        "sf-core-banking",
+        "task-underwriter",
+        "sf-escalate",
+        "sf-audit"
+      ]
+    },
+    {
+      "name": "riskAssessment",
+      "type": "RiskAssessment",
+      "description": "Automated risk evaluation result from the Risk Assessment Engine.",
+      "outputFrom": ["sf-risk"],
+      "inputTo": [
+        "sf-core-banking",
+        "task-underwriter",
+        "sf-escalate",
+        "sf-audit"
+      ]
+    },
+    {
+      "name": "approvalDecision",
+      "type": "ApprovalDecision",
+      "description": "Final or intermediate approval decision set by rules, underwriter, or system.",
+      "outputFrom": ["sf-risk", "task-underwriter", "sf-core-banking", "sf-escalate"],
+      "inputTo": [
+        "sf-core-banking",
+        "task-underwriter",
+        "sf-escalate",
+        "sf-audit"
+      ]
+    }
+  ],
+  "businessObjects": [
+    {
+      "name": "CustomerInfo",
+      "description": "Account-holder credit line request data. status values: SUBMITTED, IN_REVIEW, COMPLETED, ESCALATED. Validation: requestedIncrease > currentLimit; annualIncome > 0. creditScore range 300-850.",
+      "fields": [
+        { "name": "customerID", "type": "String", "required": true },
+        { "name": "fullName", "type": "String", "required": true },
+        { "name": "creditScore", "type": "Integer", "required": true },
+        { "name": "annualIncome", "type": "Decimal", "required": true },
+        { "name": "currentLimit", "type": "Decimal", "required": true },
+        { "name": "requestedIncrease", "type": "Decimal", "required": true },
+        { "name": "status", "type": "String", "required": true }
+      ]
+    },
+    {
+      "name": "RiskAssessment",
+      "description": "Automated risk engine output. riskLevel values: LOW_RISK, HIGH_RISK, AUTO_REJECT. status values: COMPLETE, ERROR.",
+      "fields": [
+        { "name": "riskLevel", "type": "String", "required": true },
+        { "name": "autoApproved", "type": "Boolean", "required": true },
+        { "name": "riskReason", "type": "String" },
+        { "name": "assessedDate", "type": "DateTime" },
+        { "name": "status", "type": "String", "required": true }
+      ]
+    },
+    {
+      "name": "ApprovalDecision",
+      "description": "Decision record. status values: APPROVED, REJECTED, PENDING_UNDERWRITER, ESCALATED, INTEGRATION_ERROR. processedBy is user id or system service account.",
+      "fields": [
+        { "name": "status", "type": "String", "required": true },
+        { "name": "approvedAmount", "type": "Decimal" },
+        { "name": "approverComments", "type": "String" },
+        { "name": "processedBy", "type": "String" },
+        { "name": "processedDate", "type": "DateTime" }
+      ]
+    }
+  ]
+}

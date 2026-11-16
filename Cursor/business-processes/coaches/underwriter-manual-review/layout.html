@@ -1,0 +1,107 @@
+<!--
+  Optional Custom HTML coach view for Underwriter Manual Review.
+  Prefer stock WebPD Output Text / Single Select / Decimal / Text Area controls
+  bound as documented in coach.spec.json.
+  Keep CSS in coach.css — do not add inline style attributes.
+-->
+<div class="clir-uw" role="form" aria-labelledby="clir-uw-title">
+  <h1 id="clir-uw-title" class="clir-uw__title">Underwriter Manual Review</h1>
+  <p class="clir-uw__subtitle">
+    Review the customer request and risk assessment, then record your decision.
+  </p>
+
+  <div id="clir-uw-errors" class="clir-uw__errors" role="alert" aria-live="polite"></div>
+
+  <section class="clir-uw__section" aria-labelledby="clir-uw-customer">
+    <h2 id="clir-uw-customer" class="clir-uw__section-title">Customer Information</h2>
+    <div class="clir-uw__grid">
+      <div>
+        <div class="clir-uw__readonly-label">Customer ID</div>
+        <p class="clir-uw__readonly-value" data-binding="tw.local.customerInfo.customerID"></p>
+      </div>
+      <div>
+        <div class="clir-uw__readonly-label">Full Name</div>
+        <p class="clir-uw__readonly-value" data-binding="tw.local.customerInfo.fullName"></p>
+      </div>
+      <div>
+        <div class="clir-uw__readonly-label">Credit Score</div>
+        <p class="clir-uw__readonly-value" data-binding="tw.local.customerInfo.creditScore"></p>
+      </div>
+      <div>
+        <div class="clir-uw__readonly-label">Annual Income</div>
+        <p class="clir-uw__readonly-value" data-binding="tw.local.customerInfo.annualIncome"></p>
+      </div>
+      <div>
+        <div class="clir-uw__readonly-label">Current Limit</div>
+        <p class="clir-uw__readonly-value" data-binding="tw.local.customerInfo.currentLimit"></p>
+      </div>
+      <div>
+        <div class="clir-uw__readonly-label">Requested Limit</div>
+        <p class="clir-uw__readonly-value" data-binding="tw.local.customerInfo.requestedIncrease"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="clir-uw__section" aria-labelledby="clir-uw-risk">
+    <h2 id="clir-uw-risk" class="clir-uw__section-title">Risk Assessment</h2>
+    <div class="clir-uw__grid">
+      <div>
+        <div class="clir-uw__readonly-label">Risk Level</div>
+        <p class="clir-uw__readonly-value" data-binding="tw.local.riskAssessment.riskLevel"></p>
+      </div>
+      <div>
+        <div class="clir-uw__readonly-label">Auto Approved</div>
+        <p class="clir-uw__readonly-value" data-binding="tw.local.riskAssessment.autoApproved"></p>
+      </div>
+      <div class="clir-uw__field--full">
+        <div class="clir-uw__readonly-label">Risk Reason</div>
+        <p class="clir-uw__readonly-value" data-binding="tw.local.riskAssessment.riskReason"></p>
+      </div>
+      <div>
+        <div class="clir-uw__readonly-label">Assessed Date</div>
+        <p class="clir-uw__readonly-value" data-binding="tw.local.riskAssessment.assessedDate"></p>
+      </div>
+      <div>
+        <div class="clir-uw__readonly-label">Assessment Status</div>
+        <p class="clir-uw__readonly-value" data-binding="tw.local.riskAssessment.status"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="clir-uw__section" aria-labelledby="clir-uw-decision">
+    <h2 id="clir-uw-decision" class="clir-uw__section-title">Underwriter Decision</h2>
+    <div class="clir-uw__grid">
+      <div class="clir-uw__field">
+        <label class="clir-uw__label" for="decisionStatus">Decision</label>
+        <select class="clir-uw__select" id="decisionStatus" name="decisionStatus"
+                data-binding="tw.local.approvalDecision.status" required>
+          <option value="">Select…</option>
+          <option value="APPROVED">Approved</option>
+          <option value="REJECTED">Rejected</option>
+        </select>
+      </div>
+
+      <div class="clir-uw__field">
+        <label class="clir-uw__label" for="approvedAmount">Approved Amount</label>
+        <input class="clir-uw__input" id="approvedAmount" name="approvedAmount" type="number"
+               min="0" step="0.01" data-binding="tw.local.approvalDecision.approvedAmount" />
+      </div>
+
+      <div class="clir-uw__field clir-uw__field--full">
+        <label class="clir-uw__label" for="approverComments">Approver Comments</label>
+        <textarea class="clir-uw__textarea" id="approverComments" name="approverComments"
+                  data-binding="tw.local.approvalDecision.approverComments" required></textarea>
+      </div>
+
+      <div class="clir-uw__field clir-uw__field--full">
+        <label class="clir-uw__label" for="processedBy">Processed By</label>
+        <input class="clir-uw__input" id="processedBy" name="processedBy" type="text"
+               data-binding="tw.local.approvalDecision.processedBy" required />
+      </div>
+    </div>
+  </section>
+
+  <div class="clir-uw__actions">
+    <button type="button" class="clir-uw__btn" id="btnComplete">Complete Review</button>
+  </div>
+</div>

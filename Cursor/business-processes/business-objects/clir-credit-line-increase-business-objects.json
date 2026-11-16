@@ -1,0 +1,111 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "CLIR Credit Line Increase Business Objects",
+    "description": "Business objects for the Automated Credit Line Increase Request (CLIR) process application, sourced from IBM_BAW_PDD_Credit_Line_Increase.docx.",
+    "version": "1.0.0"
+  },
+  "components": {
+    "schemas": {
+      "CustomerInfo": {
+        "type": "object",
+        "description": "Account-holder credit line request data captured at submission.",
+        "properties": {
+          "customerID": {
+            "type": "string",
+            "description": "Unique customer identifier (e.g. CUST-9942)."
+          },
+          "fullName": {
+            "type": "string",
+            "description": "Full legal name of account holder."
+          },
+          "creditScore": {
+            "type": "integer",
+            "description": "Bureau credit score rating (300 - 850)."
+          },
+          "annualIncome": {
+            "type": "number",
+            "description": "Verified gross annual income."
+          },
+          "currentLimit": {
+            "type": "number",
+            "description": "Existing active credit limit."
+          },
+          "requestedIncrease": {
+            "type": "number",
+            "description": "Target requested credit limit. Must be greater than currentLimit."
+          },
+          "status": {
+            "type": "string",
+            "description": "Request lifecycle status. Values: SUBMITTED, IN_REVIEW, COMPLETED, ESCALATED."
+          }
+        },
+        "required": [
+          "customerID",
+          "fullName",
+          "creditScore",
+          "annualIncome",
+          "currentLimit",
+          "requestedIncrease",
+          "status"
+        ]
+      },
+      "RiskAssessment": {
+        "type": "object",
+        "description": "Automated risk evaluation result from the Risk Assessment Engine.",
+        "properties": {
+          "riskLevel": {
+            "type": "string",
+            "description": "Evaluation result. Values: LOW_RISK, HIGH_RISK, AUTO_REJECT."
+          },
+          "autoApproved": {
+            "type": "boolean",
+            "description": "True when the request passed the automated rule check."
+          },
+          "riskReason": {
+            "type": "string",
+            "description": "Detailed reason code or description for the evaluation result."
+          },
+          "assessedDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the risk assessment completed."
+          },
+          "status": {
+            "type": "string",
+            "description": "Assessment run status. Values: COMPLETE, ERROR."
+          }
+        },
+        "required": ["riskLevel", "autoApproved", "status"]
+      },
+      "ApprovalDecision": {
+        "type": "object",
+        "description": "Final or intermediate approval decision set by rules, underwriter, or system.",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Decision status. Values: APPROVED, REJECTED, PENDING_UNDERWRITER, ESCALATED, INTEGRATION_ERROR."
+          },
+          "approvedAmount": {
+            "type": "number",
+            "description": "Final sanctioned credit limit amount."
+          },
+          "approverComments": {
+            "type": "string",
+            "description": "Notes and rationale from underwriter or system engine."
+          },
+          "processedBy": {
+            "type": "string",
+            "description": "User ID or system service account executing the decision."
+          },
+          "processedDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the decision was recorded."
+          }
+        },
+        "required": ["status"]
+      }
+    }
+  }
+}

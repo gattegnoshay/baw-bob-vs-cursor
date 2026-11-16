@@ -1,0 +1,40 @@
+{
+  "name": "CLIR Underwriter Review Form",
+  "acronymHint": "CLIRUWR",
+  "artifactType": "coachView",
+  "description": "Reusable Coach View for underwriter review. Shows CustomerInfo and RiskAssessment read-only; edits ApprovalDecision.",
+  "binding": {
+    "type": "ApprovalDecision",
+    "required": true
+  },
+  "configOptions": [
+    {
+      "name": "customerInfo",
+      "type": "CustomerInfo",
+      "description": "Read-only customer request data shown in the review header."
+    },
+    {
+      "name": "riskAssessment",
+      "type": "RiskAssessment",
+      "description": "Read-only risk engine result shown to the underwriter."
+    }
+  ],
+  "eventHandlers": ["load", "view", "change", "validate"],
+  "files": {
+    "html": "content.html",
+    "css": "styles.css",
+    "load": "handlers/load.js",
+    "view": "handlers/view.js",
+    "change": "handlers/change.js",
+    "validate": "handlers/validate.js"
+  },
+  "usage": {
+    "cshs": "Underwriter Manual Review",
+    "dropOnCoach": true,
+    "bindTo": "tw.local.approvalDecision",
+    "configBindings": {
+      "customerInfo": "tw.local.customerInfo",
+      "riskAssessment": "tw.local.riskAssessment"
+    }
+  }
+}

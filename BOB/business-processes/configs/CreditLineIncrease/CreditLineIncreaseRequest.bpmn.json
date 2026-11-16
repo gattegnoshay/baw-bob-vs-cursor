@@ -1,0 +1,254 @@
+{
+  "process": {
+    "name": "Credit Line Increase Request",
+    "processApp": "CLIR",
+    "snapshot": "1.0",
+    "description": "Handles customer requests for credit limit increases. Low-risk requests are auto-approved via Core Banking REST API; high-risk requests are escalated to the Underwriter team with 24-hour SLA monitoring and boundary timer escalation. All outcomes are captured in a full audit log."
+  },
+  "roles": [
+    {"id": "initiator",   "name": "Process Initiator (CSR or Self-Service Portal)", "type": "human"},
+    {"id": "system",      "name": "System", "type": "system"},
+    {"id": "underwriter", "name": "Underwriter Team", "type": "team"},
+    {"id": "manager",     "name": "Manager", "type": "human"}
+  ],
+  "elements": [
+    {
+      "id": "start",
+      "type": "startEvent",
+      "name": "Credit Line Request Received",
+      "documentation": "Triggered when a CSR or customer self-service portal initiates a credit limit increase request."
+    },
+    {
+      "id": "task-submit",
+      "type": "userTask",
+      "name": "Submit Credit Line Request",
+      "role": "initiator",
+      "documentation": "Client-Side Human Service (CSHS) coach. Coach template: clir-submit-request-coach.html (included in this ZIP). Captures: customerID, fullName, annualIncome, currentLimit, requestedIncrease, creditScore, channel. Validation rules enforced: requestedIncrease > 0, currentLimit >= 0, creditScore between 300-850, annualIncome > 0. Output bound to tw.local.customerInfo (type: CustomerInfo). Live risk preview computes all three PDD risk rules client-side before submission. Replace submitToBAW() stub with tw.local.customerInfo.* assignments and tw.coach.finish() after import."
+    },
+    {
+      "id": "sf-risk-assessment",
+      "type": "serviceTask",
+      "name": "Risk Assessment Engine",
+      "role": "system",
+      "documentation": "Evaluates credit risk using three rules: (1) if creditScore < 650 -> status=REJECTED, riskLevel=AUTO_REJECT; (2) if currentLimit > annualIncome * 0.50 -> riskLevel=HIGH_RISK; (3) if requestedIncrease > (annualIncome + currentLimit) * 0.30 -> riskLevel=HIGH_RISK. Default: riskLevel=LOW_RISK, autoApproved=true. Writes to tw.local.riskAssessment. Reads from tw.local.customerInfo."
+    },
+    {
+      "id": "gw-risk-level",
+      "type": "exclusiveGateway",
+      "name": "Risk Level?",
+      "documentation": "Routes on tw.local.riskAssessment.riskLevel. LOW_RISK proceeds to auto-approval path; AUTO_REJECT goes directly to audit and end; HIGH_RISK goes to manual underwriter review."
+    },
+    {
+      "id": "sf-update-banking-auto",
+      "type": "serviceTask",
+      "name": "Update Core Banking Limit",
+      "role": "system",
+      "documentation": "External REST integration: POST https://api.bank.internal/v1/limits/update. Payload: {customerId, requestedLimit, approvalStatus, processInstanceId}. Maps HTTP 200 txStatus -> tw.local.approvalDecision.status. Used on LOW_RISK auto-approval path."
+    },
+    {
+      "id": "sf-audit-auto-approved",
+      "type": "serviceTask",
+      "name": "Dispatch Audit Event Auto Approved",
+      "role": "system",
+      "documentation": "Server Script service flow. Formats JSON audit log: {timestamp, processInstanceId, customerId, finalDecision: APPROVED, riskLevel: LOW_RISK}. Outputs to system log or HTTP audit endpoint."
+    },
+    {
+      "id": "sf-audit-auto-rejected",
+      "type": "serviceTask",
+      "name": "Dispatch Audit Event Auto Rejected",
+      "role": "system",
+      "documentation": "Server Script service flow. Formats JSON audit log: {timestamp, processInstanceId, customerId, finalDecision: REJECTED, riskLevel: AUTO_REJECT, reason: riskAssessment.riskReason}. Outputs to system log or HTTP audit endpoint."
+    },
+    {
+      "id": "task-underwriter-review",
+      "type": "userTask",
+      "name": "Underwriter Manual Review",
+      "role": "underwriter",
+      "documentation": "CSHS Coach assigned to Underwriter_Group team. Coach template: clir-underwriter-review-coach.html (included in this ZIP). Inputs (read-only display): tw.local.customerInfo and tw.local.riskAssessment. Captures outputs: approvalDecision.status (APPROVED or REJECTED), approvedAmount, approverComments. SLA: 24 hours — live countdown displayed in coach; coach shows SLA breach state automatically. Non-interrupting timer boundary fires at 24h to send manager escalation without terminating the task. Replace submitDecisionToBAW() stub with tw.local.approvalDecision.* assignments and tw.coach.finish() after import. Set processedBy = tw.system.user.name."
+    },
+    {
+      "id": "timer-sla-24h",
+      "type": "boundaryEvent",
+      "eventDefinition": "timer",
+      "name": "24h SLA Overdue",
+      "attachedToRef": "task-underwriter-review",
+      "interrupting": false,
+      "documentation": "Non-interrupting timer boundary event. Fires after 24 hours if the underwriter has not completed their review. Triggers manager escalation notification without cancelling the underwriter task."
+    },
+    {
+      "id": "sf-escalation-notification",
+      "type": "serviceTask",
+      "name": "Send Manager Escalation Notification",
+      "role": "manager",
+      "documentation": "Sends escalation email to manager group when the 24h SLA is breached. Includes processInstanceId, customerId, elapsed time, and current task assignee. Does not terminate the underwriter review task."
+    },
+    {
+      "id": "gw-underwriter-decision",
+      "type": "exclusiveGateway",
+      "name": "Underwriter Decision?",
+      "documentation": "Routes on tw.local.approvalDecision.status. APPROVED proceeds to Core Banking update; REJECTED goes directly to audit event."
+    },
+    {
+      "id": "sf-update-banking-uw",
+      "type": "serviceTask",
+      "name": "Update Core Banking Limit Underwriter",
+      "role": "system",
+      "documentation": "External REST integration: POST https://api.bank.internal/v1/limits/update. Payload: {customerId, approvedAmount, approvalStatus, processInstanceId}. Maps HTTP 200 txStatus -> tw.local.approvalDecision.status. Used on underwriter-approved path."
+    },
+    {
+      "id": "sf-audit-uw-approved",
+      "type": "serviceTask",
+      "name": "Dispatch Audit Event Underwriter Approved",
+      "role": "system",
+      "documentation": "Server Script service flow. Formats JSON audit log: {timestamp, processInstanceId, customerId, finalDecision: APPROVED, riskLevel: HIGH_RISK, approver: approvalDecision.processedBy, approvedAmount}. Outputs to system log or HTTP audit endpoint."
+    },
+    {
+      "id": "sf-audit-uw-rejected",
+      "type": "serviceTask",
+      "name": "Dispatch Audit Event Underwriter Rejected",
+      "role": "system",
+      "documentation": "Server Script service flow. Formats JSON audit log: {timestamp, processInstanceId, customerId, finalDecision: REJECTED, riskLevel: HIGH_RISK, approver: approvalDecision.processedBy, reason: approvalDecision.approverComments}. Outputs to system log or HTTP audit endpoint."
+    },
+    {
+      "id": "end-auto-approved",
+      "type": "endEvent",
+      "name": "Auto Approved",
+      "documentation": "Process ends successfully with automatic approval. Core Banking limit updated."
+    },
+    {
+      "id": "end-auto-rejected",
+      "type": "endEvent",
+      "name": "Auto Rejected",
+      "documentation": "Process ends with automatic rejection due to credit score below minimum threshold (< 650)."
+    },
+    {
+      "id": "end-uw-approved",
+      "type": "endEvent",
+      "name": "Underwriter Approved",
+      "documentation": "Process ends with underwriter approval. Core Banking limit updated and audit logged."
+    },
+    {
+      "id": "end-uw-rejected",
+      "type": "endEvent",
+      "name": "Underwriter Rejected",
+      "documentation": "Process ends with underwriter rejection. Audit event logged with reason and approver comments."
+    },
+    {
+      "id": "end-escalated",
+      "type": "endEvent",
+      "name": "Escalation Sent",
+      "documentation": "Escalation notification dispatched to manager. Underwriter task continues independently."
+    }
+  ],
+  "flows": [
+    {"id": "f1",  "sourceRef": "start",                   "targetRef": "task-submit"},
+    {"id": "f2",  "sourceRef": "task-submit",             "targetRef": "sf-risk-assessment"},
+    {"id": "f3",  "sourceRef": "sf-risk-assessment",      "targetRef": "gw-risk-level"},
+    {
+      "id": "f4",
+      "sourceRef": "gw-risk-level",
+      "targetRef": "sf-update-banking-auto",
+      "name": "LOW_RISK",
+      "condition": "tw.local.riskAssessment.riskLevel == \"LOW_RISK\""
+    },
+    {
+      "id": "f5",
+      "sourceRef": "gw-risk-level",
+      "targetRef": "sf-audit-auto-rejected",
+      "name": "AUTO_REJECT",
+      "condition": "tw.local.riskAssessment.riskLevel == \"AUTO_REJECT\""
+    },
+    {
+      "id": "f6",
+      "sourceRef": "gw-risk-level",
+      "targetRef": "task-underwriter-review",
+      "name": "HIGH_RISK",
+      "isDefault": true
+    },
+    {"id": "f7",  "sourceRef": "sf-update-banking-auto",  "targetRef": "sf-audit-auto-approved"},
+    {"id": "f8",  "sourceRef": "sf-audit-auto-approved",  "targetRef": "end-auto-approved"},
+    {"id": "f9",  "sourceRef": "sf-audit-auto-rejected",  "targetRef": "end-auto-rejected"},
+    {"id": "f10", "sourceRef": "task-underwriter-review", "targetRef": "gw-underwriter-decision"},
+    {"id": "f11", "sourceRef": "timer-sla-24h",           "targetRef": "sf-escalation-notification"},
+    {"id": "f12", "sourceRef": "sf-escalation-notification", "targetRef": "end-escalated"},
+    {
+      "id": "f13",
+      "sourceRef": "gw-underwriter-decision",
+      "targetRef": "sf-update-banking-uw",
+      "name": "APPROVED",
+      "condition": "tw.local.approvalDecision.status == \"APPROVED\""
+    },
+    {
+      "id": "f14",
+      "sourceRef": "gw-underwriter-decision",
+      "targetRef": "sf-audit-uw-rejected",
+      "name": "REJECTED",
+      "isDefault": true
+    },
+    {"id": "f15", "sourceRef": "sf-update-banking-uw",   "targetRef": "sf-audit-uw-approved"},
+    {"id": "f16", "sourceRef": "sf-audit-uw-approved",   "targetRef": "end-uw-approved"},
+    {"id": "f17", "sourceRef": "sf-audit-uw-rejected",   "targetRef": "end-uw-rejected"}
+  ],
+  "variables": [
+    {
+      "name": "customerInfo",
+      "type": "CustomerInfo",
+      "description": "Primary customer data captured at request submission. Read by risk assessment and all audit events.",
+      "outputFrom": ["task-submit"],
+      "inputTo": ["sf-risk-assessment", "sf-update-banking-auto", "sf-update-banking-uw", "task-underwriter-review", "sf-audit-auto-approved", "sf-audit-auto-rejected", "sf-audit-uw-approved", "sf-audit-uw-rejected", "sf-escalation-notification"]
+    },
+    {
+      "name": "riskAssessment",
+      "type": "RiskAssessment",
+      "description": "Risk evaluation result produced by the Risk Assessment Engine. Drives gateway routing and is included in audit events.",
+      "outputFrom": ["sf-risk-assessment"],
+      "inputTo": ["gw-risk-level", "task-underwriter-review", "sf-audit-auto-approved", "sf-audit-auto-rejected", "sf-audit-uw-approved", "sf-audit-uw-rejected"]
+    },
+    {
+      "name": "approvalDecision",
+      "type": "ApprovalDecision",
+      "description": "Final approval decision captured either by the system (auto-approval) or by the underwriter. Maps Core Banking API txStatus and underwriter inputs.",
+      "outputFrom": ["task-underwriter-review", "sf-update-banking-auto", "sf-update-banking-uw"],
+      "inputTo": ["gw-underwriter-decision", "sf-audit-uw-approved", "sf-audit-uw-rejected", "sf-audit-auto-approved"]
+    }
+  ],
+  "businessObjects": [
+    {
+      "name": "CustomerInfo",
+      "description": "Captures all customer data submitted in the credit line increase request form. Used by risk engine, banking integration, and audit steps.",
+      "fields": [
+        {"name": "customerID",        "type": "String",  "required": true},
+        {"name": "fullName",          "type": "String",  "required": true},
+        {"name": "creditScore",       "type": "Integer", "required": true},
+        {"name": "annualIncome",      "type": "Decimal", "required": true},
+        {"name": "currentLimit",      "type": "Decimal", "required": true},
+        {"name": "requestedIncrease", "type": "Decimal", "required": true},
+        {"name": "submissionDate",    "type": "DateTime"},
+        {"name": "channel",           "type": "String"}
+      ]
+    },
+    {
+      "name": "RiskAssessment",
+      "description": "Output of the Risk Assessment Engine. riskLevel values: LOW_RISK, HIGH_RISK, AUTO_REJECT. autoApproved is true only when riskLevel=LOW_RISK.",
+      "fields": [
+        {"name": "riskLevel",    "type": "String",  "required": true},
+        {"name": "riskReason",   "type": "String"},
+        {"name": "autoApproved", "type": "Boolean"},
+        {"name": "assessedDate", "type": "DateTime"},
+        {"name": "engineVersion","type": "String"}
+      ]
+    },
+    {
+      "name": "ApprovalDecision",
+      "description": "Final credit line decision. status values: APPROVED, REJECTED, PENDING_UNDERWRITER. processedBy is the underwriter user ID or 'SYSTEM' for automated decisions.",
+      "fields": [
+        {"name": "status",            "type": "String",  "required": true},
+        {"name": "approvedAmount",    "type": "Decimal"},
+        {"name": "approverComments",  "type": "String"},
+        {"name": "processedBy",       "type": "String"},
+        {"name": "decisionTimestamp", "type": "DateTime"},
+        {"name": "bankingTxId",       "type": "String"}
+      ]
+    }
+  ]
+}

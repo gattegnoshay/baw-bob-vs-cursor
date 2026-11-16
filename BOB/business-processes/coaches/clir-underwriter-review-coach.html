@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<!--
+  CLIR — Underwriter Manual Review
+  Coach:   Underwriter Manual Review (CSHS)
+  Step:    Step 4 of the Credit Line Increase Request process
+  Actor:   Underwriter Team (Underwriter_Group)
+  SLA:     24-hour timer boundary event (non-interrupting)
+
+  BAW integration notes:
+  ─────────────────────
+  • This file is the starter HTML for the CSHS named "Underwriter Manual Review".
+  • The coach view receives tw.local.customerInfo (read-only display) and
+    tw.local.riskAssessment (read-only display), and outputs tw.local.approvalDecision.
+  • Assign this task to the team "Underwriter_Group" in the CSHS lane.
+  • Wire tw.coach.finish() on APPROVED or REJECTED button click.
+  • The 24h timer boundary event on this task (non-interrupting) triggers the
+    "Send Manager Escalation Notification" service flow independently.
+
+  Field → BO mapping (Inputs):
+  ─────────────────────────────
+  tw.local.customerInfo.customerID          → displayed read-only
+  tw.local.customerInfo.fullName            → displayed read-only
+  tw.local.customerInfo.creditScore         → displayed read-only
+  tw.local.customerInfo.annualIncome        → displayed read-only
+  tw.local.customerInfo.currentLimit        → displayed read-only
+  tw.local.customerInfo.requestedIncrease   → displayed read-only
+  tw.local.customerInfo.submissionDate      → displayed read-only
+  tw.local.riskAssessment.riskLevel         → displayed as badge
+  tw.local.riskAssessment.riskReason        → displayed read-only
+  tw.local.riskAssessment.assessedDate      → displayed read-only
+
+  Field → BO mapping (Outputs):
+  ──────────────────────────────
+  tw.local.approvalDecision.status          → APPROVED or REJECTED (String, required)
+  tw.local.approvalDecision.approvedAmount  → Decimal (required when APPROVED)
+  tw.local.approvalDecision.approverComments → String
+  tw.local.approvalDecision.processedBy    → set to current user (tw.system.user.name)
+  tw.local.approvalDecision.decisionTimestamp → DateTime, set on submit
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLIR — Underwriter Manual Review</title>
+  <style>
+    /* ── Design tokens ─────────────────────────────────────────────── */
+    :root {
+      --ibm-blue-60:    #0043ce;
+      --ibm-blue-70:    #002d9c;
+      --ibm-gray-10:    #f4f4f4;
+      --ibm-gray-20:    #e0e0e0;
+      --ibm-gray-50:    #8d8d8d;
+      --ibm-gray-90:    #262626;
+      --ibm-red-60:     #da1e28;
+      --ibm-green-50:   #24a148;
+      --ibm-orange-40:  #ff832b;
+      --ibm-white:      #ffffff;
+      --radius:         4px;
+      --font:           'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--ibm-gray-90);
+      background: var(--ibm-gray-10);
+      min-height: 100vh;
+    }
+
+    /* ── Shell header ──────────────────────────────────────────────── */
+    .shell-header {
+      background: var(--ibm-blue-60);
+      color: var(--ibm-white);
+      padding: 0 1.5rem;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .shell-header .brand       { font-weight: 600; font-size: 15px; }
+    .shell-header .separator   { opacity: .4; }
+    .shell-header .page-title  { font-size: 13px; opacity: .85; }
+    .shell-header .task-badge  {
+      margin-left: auto;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 12px;
+      padding: .15rem .75rem;
+      font-size: 12px;
+    }
+
+    /* ── SLA countdown bar ─────────────────────────────────────────── */
+    .sla-bar {
+      background: #fff7e6;
+      border-bottom: 1px solid #ffc107;
+      padding: .55rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      font-size: 13px;
+      color: #7a4f00;
+    }
+    .sla-bar .sla-icon { font-size: 16px; }
+    .sla-bar .sla-time { font-weight: 700; }
+    .sla-bar.overdue   { background: #fff1f1; border-color: var(--ibm-red-60); color: var(--ibm-red-60); }
+
+    /* ── Page layout ───────────────────────────────────────────────── */
+    .page-wrapper {
+      max-width: 860px;
+      margin: 1.5rem auto;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1.25rem;
+      align-items: start;
+    }
+    @media (max-width: 720px) {
+      .page-wrapper { grid-template-columns: 1fr; }
+    }
+
+    /* ── Cards ─────────────────────────────────────────────────────── */
+    .card {
+      background: var(--ibm-white);
+      border: 1px solid var(--ibm-gray-20);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      padding-bottom: .75rem;
+      border-bottom: 1px solid var(--ibm-gray-20);
+    }
+    .card-title .sub { font-size: 12px; font-weight: 400; color: var(--ibm-gray-50); margin-left: .5rem; }
+
+    /* ── Read-only data table ──────────────────────────────────────── */
+    .data-grid {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: .5rem 1rem;
+    }
+    .data-grid .dl { font-size: 12px; color: var(--ibm-gray-50); padding-top: 1px; }
+    .data-grid .dv { font-size: 14px; font-weight: 500; }
+    .data-grid .dv.mono { font-family: 'IBM Plex Mono', 'Consolas', monospace; font-size: 13px; }
+    .data-grid + .data-grid { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--ibm-gray-20); }
+
+    /* ── Risk badge ────────────────────────────────────────────────── */
+    .risk-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .2rem .65rem;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .risk-badge.high   { background: #ffd6e8; color: #750e21; }
+    .risk-badge.low    { background: #defbe6; color: #0e6027; }
+    .risk-badge.reject { background: #fff1f1; color: var(--ibm-red-60); border: 1px solid var(--ibm-red-60); }
+
+    /* ── Financial summary ─────────────────────────────────────────── */
+    .fin-summary {
+      background: var(--ibm-gray-10);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .fin-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: .3rem 0;
+    }
+    .fin-row + .fin-row { border-top: 1px solid var(--ibm-gray-20); }
+    .fin-label { font-size: 12px; color: var(--ibm-gray-50); }
+    .fin-value { font-size: 14px; font-weight: 600; }
+    .fin-value.accent { color: var(--ibm-blue-60); }
+    .fin-value.warn   { color: var(--ibm-orange-40); }
+    .fin-value.danger { color: var(--ibm-red-60); }
+
+    /* ── Decision panel ────────────────────────────────────────────── */
+    .decision-card { position: sticky; top: 1rem; }
+
+    .field { display: flex; flex-direction: column; gap: .35rem; margin-bottom: 1.1rem; }
+    label  { font-size: 13px; font-weight: 600; }
+    label .required-mark { color: var(--ibm-red-60); }
+    label .hint { font-weight: 400; font-size: 12px; color: var(--ibm-gray-50); }
+
+    input[type="number"],
+    textarea {
+      border: 1px solid var(--ibm-gray-50);
+      border-radius: var(--radius);
+      padding: .5rem .75rem;
+      font-size: 14px;
+      font-family: var(--font);
+      color: var(--ibm-gray-90);
+      background: var(--ibm-white);
+      width: 100%;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    input[type="number"] { height: 40px; }
+    textarea { resize: vertical; min-height: 80px; }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--ibm-blue-60);
+      box-shadow: 0 0 0 2px rgba(0,67,206,.2);
+    }
+    input.invalid, textarea.invalid {
+      border-color: var(--ibm-red-60);
+    }
+
+    .error-msg { font-size: 12px; color: var(--ibm-red-60); display: none; }
+    .error-msg.visible { display: block; }
+
+    /* ── Decision toggle ───────────────────────────────────────────── */
+    .decision-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .5rem;
+      margin-bottom: 1.1rem;
+    }
+    .toggle-btn {
+      height: 44px;
+      border-radius: var(--radius);
+      border: 2px solid var(--ibm-gray-20);
+      background: var(--ibm-white);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer;
+      transition: all .15s;
+      color: var(--ibm-gray-90);
+    }
+    .toggle-btn:hover { border-color: var(--ibm-gray-50); }
+    .toggle-btn.selected-approve {
+      background: #defbe6;
+      border-color: var(--ibm-green-50);
+      color: #0e6027;
+    }
+    .toggle-btn.selected-reject {
+      background: #fff1f1;
+      border-color: var(--ibm-red-60);
+      color: var(--ibm-red-60);
+    }
+    .toggle-btn:focus { outline: 2px solid var(--ibm-blue-60); outline-offset: 2px; }
+
+    #approvedAmountSection { display: none; }
+    #approvedAmountSection.visible { display: block; }
+
+    /* ── Action buttons ────────────────────────────────────────────── */
+    .action-bar {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--ibm-gray-20);
+    }
+    .btn-submit-decision {
+      width: 100%;
+      height: 44px;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer;
+      transition: background .15s, opacity .15s;
+    }
+    .btn-submit-decision.approve {
+      background: var(--ibm-green-50);
+      color: var(--ibm-white);
+    }
+    .btn-submit-decision.approve:hover { background: #0e6027; }
+    .btn-submit-decision.reject {
+      background: var(--ibm-red-60);
+      color: var(--ibm-white);
+    }
+    .btn-submit-decision.reject:hover { background: #a2191f; }
+    .btn-submit-decision.neutral {
+      background: var(--ibm-gray-20);
+      color: var(--ibm-gray-90);
+    }
+    .btn-submit-decision:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-submit-decision:focus { outline: 2px solid var(--ibm-blue-60); outline-offset: 2px; }
+
+    .select-decision-hint {
+      font-size: 12px;
+      color: var(--ibm-gray-50);
+      text-align: center;
+      margin-top: .5rem;
+    }
+
+    /* ── Confirmation overlay ──────────────────────────────────────── */
+    .confirm-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .confirm-overlay.visible { display: flex; }
+    .confirm-dialog {
+      background: var(--ibm-white);
+      border-radius: var(--radius);
+      padding: 2rem;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 8px 32px rgba(0,0,0,.2);
+    }
+    .confirm-dialog h2 { font-size: 18px; margin-bottom: .5rem; }
+    .confirm-dialog p  { font-size: 14px; color: var(--ibm-gray-50); margin-bottom: 1.5rem; }
+    .confirm-actions { display: flex; gap: .75rem; justify-content: flex-end; }
+    .btn-cancel-confirm {
+      height: 36px; padding: 0 1rem;
+      border: 1px solid var(--ibm-gray-50);
+      border-radius: var(--radius);
+      background: var(--ibm-white);
+      font-family: var(--font); font-size: 14px;
+      cursor: pointer;
+    }
+    .btn-confirm {
+      height: 36px; padding: 0 1rem;
+      border: none; border-radius: var(--radius);
+      font-family: var(--font); font-size: 14px; font-weight: 600;
+      cursor: pointer; color: var(--ibm-white);
+    }
+    .btn-confirm.approve { background: var(--ibm-green-50); }
+    .btn-confirm.reject  { background: var(--ibm-red-60); }
+  </style>
+</head>
+<body>
+
+  <!-- Shell header -->
+  <header class="shell-header" role="banner">
+    <span class="brand">IBM</span>
+    <span class="separator">|</span>
+    <span class="page-title">Credit Line Increase Request — Underwriter Review</span>
+    <span class="task-badge">HIGH RISK</span>
+  </header>
+
+  <!-- SLA countdown -->
+  <div id="slaBar" class="sla-bar" role="status" aria-live="polite">
+    <span class="sla-icon" aria-hidden="true">⏱</span>
+    SLA deadline: <span class="sla-time" id="slaCountdown">--:--:--</span> remaining
+    <span id="slaStatus"></span>
+  </div>
+
+  <main class="page-wrapper" role="main">
+
+    <!-- Left column: read-only case summary -->
+    <div>
+
+      <!-- Customer information -->
+      <div class="card">
+        <h1 class="card-title">Customer Information <span class="sub">Read-only</span></h1>
+        <dl class="data-grid" id="customerGrid">
+          <dt class="dl">Customer ID</dt>    <dd class="dv mono" id="disp-customerID">—</dd>
+          <dt class="dl">Full Name</dt>      <dd class="dv" id="disp-fullName">—</dd>
+          <dt class="dl">Channel</dt>        <dd class="dv" id="disp-channel">—</dd>
+          <dt class="dl">Submitted</dt>      <dd class="dv" id="disp-submissionDate">—</dd>
+        </dl>
+
+        <!-- Financial summary -->
+        <div class="fin-summary" aria-label="Financial summary">
+          <div class="fin-row">
+            <span class="fin-label">Credit Score</span>
+            <span class="fin-value" id="disp-creditScore">—</span>
+          </div>
+          <div class="fin-row">
+            <span class="fin-label">Annual Income</span>
+            <span class="fin-value accent" id="disp-annualIncome">—</span>
+          </div>
+          <div class="fin-row">
+            <span class="fin-label">Current Limit</span>
+            <span class="fin-value" id="disp-currentLimit">—</span>
+          </div>
+          <div class="fin-row">
+            <span class="fin-label">Requested Increase</span>
+            <span class="fin-value accent" id="disp-requestedIncrease">—</span>
+          </div>
+          <div class="fin-row">
+            <span class="fin-label">New Total (if approved)</span>
+            <span class="fin-value accent" id="disp-newTotal">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Risk assessment -->
+      <div class="card" style="margin-top:1.25rem;">
+        <h2 class="card-title">Risk Assessment <span class="sub">System output</span></h2>
+        <dl class="data-grid">
+          <dt class="dl">Risk Level</dt>
+          <dd class="dv"><span class="risk-badge high" id="disp-riskLevel">HIGH_RISK</span></dd>
+          <dt class="dl">Reason</dt>    <dd class="dv" id="disp-riskReason">—</dd>
+          <dt class="dl">Assessed</dt> <dd class="dv" id="disp-assessedDate">—</dd>
+        </dl>
+      </div>
+
+    </div>
+
+    <!-- Right column: decision panel (sticky) -->
+    <aside class="decision-card">
+      <div class="card">
+        <h2 class="card-title">Underwriter Decision</h2>
+
+        <!-- Decision toggle -->
+        <p style="font-size:13px;color:var(--ibm-gray-50);margin-bottom:.75rem;">Select your decision:</p>
+        <div class="decision-toggle" role="group" aria-label="Approval decision">
+          <button type="button" class="toggle-btn" id="btnApprove"
+                  aria-pressed="false" onclick="selectDecision('APPROVED')">
+            ✓ Approve
+          </button>
+          <button type="button" class="toggle-btn" id="btnReject"
+                  aria-pressed="false" onclick="selectDecision('REJECTED')">
+            ✕ Reject
+          </button>
+        </div>
+
+        <!-- Approved amount (shown only when APPROVED) -->
+        <div id="approvedAmountSection" class="field">
+          <label for="approvedAmount">
+            Approved Amount <span class="required-mark">*</span>
+            <span class="hint">(new credit limit total)</span>
+          </label>
+          <input type="number" id="approvedAmount" name="approvedAmount"
+                 min="0.01" step="0.01"
+                 placeholder="e.g. 7000"
+                 aria-required="true"
+                 aria-describedby="approvedAmount-err" />
+          <span id="approvedAmount-err" class="error-msg" role="alert">An approved amount greater than zero is required</span>
+        </div>
+
+        <!-- Comments -->
+        <div class="field">
+          <label for="approverComments">
+            Comments / Rationale
+            <span class="hint">(recommended)</span>
+          </label>
+          <textarea id="approverComments" name="approverComments"
+                    placeholder="Enter your rationale, any conditions, or notes…"
+                    aria-describedby="approverComments-hint"></textarea>
+          <span id="approverComments-hint" style="font-size:12px;color:var(--ibm-gray-50);">
+            This will be included in the audit log.
+          </span>
+        </div>
+
+        <!-- Submit decision -->
+        <div class="action-bar">
+          <button type="button" id="btnSubmitDecision"
+                  class="btn-submit-decision neutral"
+                  onclick="promptConfirm()"
+                  disabled>
+            Submit Decision
+          </button>
+          <p class="select-decision-hint" id="decisionHint" aria-live="polite">
+            Select Approve or Reject above to continue.
+          </p>
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- Confirmation dialog -->
+  <div id="confirmOverlay" class="confirm-overlay" role="dialog"
+       aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="confirm-dialog">
+      <h2 id="confirmTitle">Confirm Decision</h2>
+      <p id="confirmBody">Are you sure?</p>
+      <div class="confirm-actions">
+        <button class="btn-cancel-confirm" onclick="closeConfirm()">Cancel</button>
+        <button id="btnConfirmFinal" class="btn-confirm" onclick="submitDecision()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ────────────────────────────────────────────────────────────────────
+       BAW CSHS Coach Script — Underwriter Manual Review
+       ─────────────────────────────────────────────────────────────────────
+       In Process Designer:
+         1. Map inputs:  tw.local.customerInfo (read) and tw.local.riskAssessment (read).
+         2. Map outputs: tw.local.approvalDecision (write).
+         3. Replace submitDecisionToBAW() stub with tw.coach.finish() call.
+         4. Assign the CSHS task to team "Underwriter_Group".
+         5. The 24h non-interrupting timer boundary event runs independently.
+    */
+
+    /* ── Mock data — replace with tw.local bindings in Process Designer ── */
+    const customerInfo = {
+      customerID:        'CUST-9942',
+      fullName:          'Jane Smith',
+      channel:           'CSR',
+      creditScore:       710,
+      annualIncome:      62000,
+      currentLimit:      35000,
+      requestedIncrease: 10000,
+      submissionDate:    new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
+    };
+    const riskAssessment = {
+      riskLevel:    'HIGH_RISK',
+      riskReason:   'Current limit exceeds 50% of annual income (56.5% exposure ratio)',
+      assessedDate: new Date(Date.now() - 3 * 3600 * 1000 + 5000).toISOString(),
+    };
+    /* SLA deadline — 24h from submissionDate */
+    const slaDeadline = new Date(new Date(customerInfo.submissionDate).getTime() + 24 * 3600 * 1000);
+
+    /* ── Populate read-only fields ──────────────────────────────────── */
+    function fmt(val, type = 'text') {
+      if (val == null || val === '') return '—';
+      if (type === 'currency') return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(val);
+      if (type === 'date')     return new Date(val).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' });
+      return String(val);
+    }
+
+    document.getElementById('disp-customerID').textContent       = customerInfo.customerID;
+    document.getElementById('disp-fullName').textContent         = customerInfo.fullName;
+    document.getElementById('disp-channel').textContent          = customerInfo.channel === 'CSR' ? 'Customer Service Representative' : 'Self-Service Portal';
+    document.getElementById('disp-submissionDate').textContent   = fmt(customerInfo.submissionDate, 'date');
+    document.getElementById('disp-annualIncome').textContent     = fmt(customerInfo.annualIncome, 'currency');
+    document.getElementById('disp-currentLimit').textContent     = fmt(customerInfo.currentLimit, 'currency');
+    document.getElementById('disp-requestedIncrease').textContent= fmt(customerInfo.requestedIncrease, 'currency');
+    document.getElementById('disp-newTotal').textContent         = fmt(customerInfo.currentLimit + customerInfo.requestedIncrease, 'currency');
+
+    /* credit score with colour coding */
+    const csEl = document.getElementById('disp-creditScore');
+    csEl.textContent = customerInfo.creditScore;
+    csEl.style.color = customerInfo.creditScore < 650 ? '#da1e28'
+                     : customerInfo.creditScore < 720 ? '#ff832b' : '#24a148';
+
+    /* risk badge */
+    const riskEl = document.getElementById('disp-riskLevel');
+    const cls = { HIGH_RISK: 'high', LOW_RISK: 'low', AUTO_REJECT: 'reject' }[riskAssessment.riskLevel] || 'high';
+    riskEl.className = 'risk-badge ' + cls;
+    riskEl.textContent = riskAssessment.riskLevel.replace(/_/g, ' ');
+    document.getElementById('disp-riskReason').textContent   = riskAssessment.riskReason || '—';
+    document.getElementById('disp-assessedDate').textContent = fmt(riskAssessment.assessedDate, 'date');
+
+    /* ── SLA countdown ──────────────────────────────────────────────── */
+    function updateSLA() {
+      const remaining = slaDeadline - Date.now();
+      const bar = document.getElementById('slaBar');
+      const countdown = document.getElementById('slaCountdown');
+      const status = document.getElementById('slaStatus');
+
+      if (remaining <= 0) {
+        countdown.textContent = '00:00:00';
+        bar.classList.add('overdue');
+        status.textContent = '— SLA BREACHED — escalation triggered';
+        return;
+      }
+
+      const h = Math.floor(remaining / 3600000);
+      const m = Math.floor((remaining % 3600000) / 60000);
+      const s = Math.floor((remaining % 60000) / 1000);
+      countdown.textContent = [h, m, s].map(n => String(n).padStart(2, '0')).join(':');
+
+      if (remaining < 3600000) {
+        bar.style.background = '#fff1f1';
+        bar.style.borderColor = '#da1e28';
+        bar.style.color = '#a2191f';
+      }
+    }
+    updateSLA();
+    setInterval(updateSLA, 1000);
+
+    /* ── Decision state ─────────────────────────────────────────────── */
+    let selectedDecision = null;
+
+    function selectDecision(decision) {
+      selectedDecision = decision;
+
+      const btnApprove   = document.getElementById('btnApprove');
+      const btnReject    = document.getElementById('btnReject');
+      const submitBtn    = document.getElementById('btnSubmitDecision');
+      const hint         = document.getElementById('decisionHint');
+      const amtSection   = document.getElementById('approvedAmountSection');
+
+      btnApprove.className = 'toggle-btn' + (decision === 'APPROVED' ? ' selected-approve' : '');
+      btnReject.className  = 'toggle-btn' + (decision === 'REJECTED' ? ' selected-reject'  : '');
+      btnApprove.setAttribute('aria-pressed', decision === 'APPROVED');
+      btnReject.setAttribute('aria-pressed', decision === 'REJECTED');
+
+      amtSection.classList.toggle('visible', decision === 'APPROVED');
+      if (decision === 'APPROVED') {
+        /* Pre-fill approved amount with requested total */
+        const totalEl = document.getElementById('approvedAmount');
+        if (!totalEl.value) totalEl.value = (customerInfo.currentLimit + customerInfo.requestedIncrease).toFixed(2);
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = decision === 'APPROVED' ? 'Submit: Approve Request' : 'Submit: Reject Request';
+      submitBtn.className = 'btn-submit-decision ' + (decision === 'APPROVED' ? 'approve' : 'reject');
+      hint.textContent = '';
+    }
+
+    /* ── Confirmation dialog ────────────────────────────────────────── */
+    function promptConfirm() {
+      if (!selectedDecision) return;
+
+      const name   = customerInfo.fullName;
+      const amount = parseFloat(document.getElementById('approvedAmount').value) || 0;
+
+      /* Validate before opening dialog */
+      if (selectedDecision === 'APPROVED') {
+        const amtEl  = document.getElementById('approvedAmount');
+        const amtErr = document.getElementById('approvedAmount-err');
+        if (!amount || amount <= 0) {
+          amtEl.classList.add('invalid');
+          amtErr.classList.add('visible');
+          amtEl.focus();
+          return;
+        }
+        amtEl.classList.remove('invalid');
+        amtErr.classList.remove('visible');
+      }
+
+      const body = selectedDecision === 'APPROVED'
+        ? `You are approving the credit line increase for <strong>${name}</strong> with an approved limit of <strong>${fmt(amount, 'currency')}</strong>. This will update the core banking system.`
+        : `You are rejecting the credit line increase request for <strong>${name}</strong>. This action cannot be undone.`;
+
+      document.getElementById('confirmBody').innerHTML = body;
+      document.getElementById('confirmTitle').textContent =
+        selectedDecision === 'APPROVED' ? 'Confirm Approval' : 'Confirm Rejection';
+
+      const confirmBtn = document.getElementById('btnConfirmFinal');
+      confirmBtn.className = 'btn-confirm ' + (selectedDecision === 'APPROVED' ? 'approve' : 'reject');
+      confirmBtn.textContent = selectedDecision === 'APPROVED' ? 'Yes, Approve' : 'Yes, Reject';
+
+      document.getElementById('confirmOverlay').classList.add('visible');
+    }
+
+    function closeConfirm() {
+      document.getElementById('confirmOverlay').classList.remove('visible');
+    }
+
+    /* Close on backdrop click */
+    document.getElementById('confirmOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeConfirm();
+    });
+
+    /* ── Final submission ───────────────────────────────────────────── */
+    function submitDecision() {
+      closeConfirm();
+
+      const approvalDecision = {
+        status:             selectedDecision,
+        approvedAmount:     selectedDecision === 'APPROVED'
+                              ? parseFloat(document.getElementById('approvedAmount').value)
+                              : null,
+        approverComments:   document.getElementById('approverComments').value.trim(),
+        processedBy:        getCurrentUser(),
+        decisionTimestamp:  new Date().toISOString(),
+        bankingTxId:        null, /* set by Update Core Banking Limit service flow */
+      };
+
+      submitDecisionToBAW(approvalDecision);
+    }
+
+    function getCurrentUser() {
+      /* In BAW CSHS, replace with: tw.system.user.name */
+      return 'current.underwriter@bank.internal';
+    }
+
+    /* ── BAW integration stub ───────────────────────────────────────── */
+    function submitDecisionToBAW(approvalDecision) {
+      /*
+        REPLACE THIS STUB with the actual BAW coach finish call:
+
+          tw.local.approvalDecision.status            = approvalDecision.status;
+          tw.local.approvalDecision.approvedAmount    = approvalDecision.approvedAmount;
+          tw.local.approvalDecision.approverComments  = approvalDecision.approverComments;
+          tw.local.approvalDecision.processedBy       = tw.system.user.name;
+          tw.local.approvalDecision.decisionTimestamp = new Date();
+          tw.coach.finish();
+
+        In Process Designer, use the CSHS data mapping panel to wire the
+        ApprovalDecision variable directly instead of manual tw.local assignment.
+      */
+      console.log('[CLIR Coach] submitDecisionToBAW:', JSON.stringify(approvalDecision, null, 2));
+      alert('[CLIR Underwriter Coach] Decision recorded: ' + approvalDecision.status + '\n\nReplace submitDecisionToBAW() stub with tw.coach.finish() in Process Designer.');
+    }
+  </script>
+
+</body>
+</html>

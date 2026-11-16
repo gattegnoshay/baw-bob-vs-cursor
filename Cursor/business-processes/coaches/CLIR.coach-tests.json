@@ -1,0 +1,147 @@
+{
+  "suite_id": "CLIR-COACH-001",
+  "name": "CLIR Coach Validation Suite",
+  "process_app": "CLIR",
+  "process_model": "Credit Line Increase Request",
+  "execution": "manual",
+  "test_cases": [
+    {
+      "id": "COACH-SUBMIT-HAPPY",
+      "type": "coach",
+      "name": "Submit coach accepts valid request",
+      "coach_view": "Submit Credit Line Increase Request",
+      "preconditions": ["CSHS opened with empty CustomerInfo"],
+      "test_data": {
+        "tw.local.customerInfo.customerID": "CUST-9942",
+        "tw.local.customerInfo.fullName": "Alex Rivera",
+        "tw.local.customerInfo.creditScore": 720,
+        "tw.local.customerInfo.annualIncome": 95000,
+        "tw.local.customerInfo.currentLimit": 5000,
+        "tw.local.customerInfo.requestedIncrease": 8000
+      },
+      "expected": {
+        "validation": "pass",
+        "after_complete": {
+          "tw.local.customerInfo.status": "SUBMITTED"
+        }
+      },
+      "coach_assertions": []
+    },
+    {
+      "id": "COACH-SUBMIT-INCOME",
+      "type": "coach",
+      "name": "Submit coach rejects non-positive annual income",
+      "coach_view": "Submit Credit Line Increase Request",
+      "coach_assertions": [
+        {
+          "field_id": "tw.local.customerInfo.annualIncome",
+          "field_label": "Annual Income",
+          "assertions": [
+            {
+              "assertion_type": "validation_constraint",
+              "condition": "annualIncome > 0",
+              "expected": "Validation error shown when annualIncome is 0 or negative",
+              "test_data": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "COACH-SUBMIT-REQUESTED",
+      "type": "coach",
+      "name": "Submit coach rejects requestedIncrease <= currentLimit",
+      "coach_view": "Submit Credit Line Increase Request",
+      "coach_assertions": [
+        {
+          "field_id": "tw.local.customerInfo.requestedIncrease",
+          "field_label": "Requested Credit Limit",
+          "assertions": [
+            {
+              "assertion_type": "validation_constraint",
+              "condition": "requestedIncrease > currentLimit",
+              "expected": "Validation error when requestedIncrease equals currentLimit",
+              "test_data": {
+                "currentLimit": 5000,
+                "requestedIncrease": 5000
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "COACH-SUBMIT-SCORE",
+      "type": "coach",
+      "name": "Submit coach enforces credit score range",
+      "coach_view": "Submit Credit Line Increase Request",
+      "coach_assertions": [
+        {
+          "field_id": "tw.local.customerInfo.creditScore",
+          "field_label": "Credit Score",
+          "assertions": [
+            {
+              "assertion_type": "validation_constraint",
+              "condition": "300 <= creditScore <= 850",
+              "expected": "Validation error when creditScore is 299 or 851",
+              "test_data": 299
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "COACH-UW-APPROVE",
+      "type": "coach",
+      "name": "Underwriter coach accepts APPROVED with amount and comments",
+      "coach_view": "Underwriter Manual Review",
+      "preconditions": [
+        "customerInfo and riskAssessment populated read-only",
+        "approvalDecision.status was PENDING_UNDERWRITER"
+      ],
+      "test_data": {
+        "tw.local.approvalDecision.status": "APPROVED",
+        "tw.local.approvalDecision.approvedAmount": 7500,
+        "tw.local.approvalDecision.approverComments": "Acceptable exposure after income verification",
+        "tw.local.approvalDecision.processedBy": "uw.jsmith"
+      },
+      "expected": {
+        "validation": "pass"
+      }
+    },
+    {
+      "id": "COACH-UW-REJECT-NO-AMOUNT",
+      "type": "coach",
+      "name": "Underwriter REJECTED does not require approvedAmount",
+      "coach_view": "Underwriter Manual Review",
+      "test_data": {
+        "tw.local.approvalDecision.status": "REJECTED",
+        "tw.local.approvalDecision.approverComments": "Insufficient income documentation",
+        "tw.local.approvalDecision.processedBy": "uw.jsmith"
+      },
+      "expected": {
+        "validation": "pass"
+      }
+    },
+    {
+      "id": "COACH-UW-STATUS-ENUM",
+      "type": "coach",
+      "name": "Underwriter status must be APPROVED or REJECTED",
+      "coach_view": "Underwriter Manual Review",
+      "coach_assertions": [
+        {
+          "field_id": "tw.local.approvalDecision.status",
+          "field_label": "Decision",
+          "assertions": [
+            {
+              "assertion_type": "required",
+              "condition": "Always",
+              "expected": "Validation error when status blank or PENDING_UNDERWRITER",
+              "test_data": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

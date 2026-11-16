@@ -1,0 +1,115 @@
+/* Underwriter Manual Review — Custom HTML coach styles
+   Paste into the coach view CSS section. */
+
+.clir-uw {
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color: #1a2332;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.clir-uw__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+}
+
+.clir-uw__subtitle {
+  margin: 0 0 1.25rem;
+  color: #4a5568;
+  font-size: 0.95rem;
+}
+
+.clir-uw__section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #d9e2ec;
+}
+
+.clir-uw__section-title {
+  font-size: 1.1rem;
+  margin: 0 0 0.75rem;
+}
+
+.clir-uw__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem 1.25rem;
+}
+
+.clir-uw__readonly-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.clir-uw__readonly-value {
+  font-size: 0.95rem;
+  margin: 0.15rem 0 0;
+}
+
+.clir-uw__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.clir-uw__field--full {
+  grid-column: 1 / -1;
+}
+
+.clir-uw__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.clir-uw__input,
+.clir-uw__select,
+.clir-uw__textarea {
+  border: 1px solid #c5ced9;
+  border-radius: 4px;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.95rem;
+  background: #fff;
+}
+
+.clir-uw__textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.clir-uw__errors {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid #b42318;
+  background: #fef3f2;
+  color: #7a271a;
+  display: none;
+}
+
+.clir-uw__errors.is-visible {
+  display: block;
+}
+
+.clir-uw__actions {
+  margin-top: 0.5rem;
+}
+
+.clir-uw__btn {
+  border: 0;
+  border-radius: 4px;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  background: #0b5cab;
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .clir-uw__grid {
+    grid-template-columns: 1fr;
+  }
+}

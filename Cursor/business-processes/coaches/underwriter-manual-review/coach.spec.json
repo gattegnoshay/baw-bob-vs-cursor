@@ -1,0 +1,212 @@
+{
+  "name": "Underwriter Manual Review",
+  "type": "CSHS Coach",
+  "humanTask": "Underwriter Manual Review",
+  "assignment": "Underwriter_Group",
+  "sla": "PT24H non-interrupting timer (configured on BPD boundary, not in coach)",
+  "processVariables": {
+    "customerInfo": {
+      "type": "CustomerInfo",
+      "direction": "in",
+      "coachMode": "readOnly"
+    },
+    "riskAssessment": {
+      "type": "RiskAssessment",
+      "direction": "in",
+      "coachMode": "readOnly"
+    },
+    "approvalDecision": {
+      "type": "ApprovalDecision",
+      "direction": "inOut",
+      "coachMode": "editable"
+    }
+  },
+  "layout": {
+    "sections": [
+      {
+        "id": "section-customer",
+        "title": "Customer Information",
+        "description": "Read-only snapshot of the submitted request.",
+        "controls": [
+          {
+            "id": "roCustomerID",
+            "stockControl": "Output Text",
+            "label": "Customer ID",
+            "binding": "tw.local.customerInfo.customerID",
+            "readOnly": true
+          },
+          {
+            "id": "roFullName",
+            "stockControl": "Output Text",
+            "label": "Full Name",
+            "binding": "tw.local.customerInfo.fullName",
+            "readOnly": true
+          },
+          {
+            "id": "roCreditScore",
+            "stockControl": "Output Text",
+            "label": "Credit Score",
+            "binding": "tw.local.customerInfo.creditScore",
+            "readOnly": true
+          },
+          {
+            "id": "roAnnualIncome",
+            "stockControl": "Output Text",
+            "label": "Annual Income",
+            "binding": "tw.local.customerInfo.annualIncome",
+            "readOnly": true
+          },
+          {
+            "id": "roCurrentLimit",
+            "stockControl": "Output Text",
+            "label": "Current Limit",
+            "binding": "tw.local.customerInfo.currentLimit",
+            "readOnly": true
+          },
+          {
+            "id": "roRequestedIncrease",
+            "stockControl": "Output Text",
+            "label": "Requested Limit",
+            "binding": "tw.local.customerInfo.requestedIncrease",
+            "readOnly": true
+          }
+        ]
+      },
+      {
+        "id": "section-risk",
+        "title": "Risk Assessment",
+        "description": "Read-only automated risk engine result.",
+        "controls": [
+          {
+            "id": "roRiskLevel",
+            "stockControl": "Output Text",
+            "label": "Risk Level",
+            "binding": "tw.local.riskAssessment.riskLevel",
+            "readOnly": true
+          },
+          {
+            "id": "roAutoApproved",
+            "stockControl": "Output Text",
+            "label": "Auto Approved",
+            "binding": "tw.local.riskAssessment.autoApproved",
+            "readOnly": true
+          },
+          {
+            "id": "roRiskReason",
+            "stockControl": "Output Text",
+            "label": "Risk Reason",
+            "binding": "tw.local.riskAssessment.riskReason",
+            "readOnly": true
+          },
+          {
+            "id": "roAssessedDate",
+            "stockControl": "Output Text",
+            "label": "Assessed Date",
+            "binding": "tw.local.riskAssessment.assessedDate",
+            "readOnly": true
+          },
+          {
+            "id": "roRiskStatus",
+            "stockControl": "Output Text",
+            "label": "Assessment Status",
+            "binding": "tw.local.riskAssessment.status",
+            "readOnly": true
+          }
+        ]
+      },
+      {
+        "id": "section-decision",
+        "title": "Underwriter Decision",
+        "description": "Capture the manual approval outcome.",
+        "controls": [
+          {
+            "id": "selDecisionStatus",
+            "stockControl": "Single Select",
+            "label": "Decision",
+            "binding": "tw.local.approvalDecision.status",
+            "dataType": "String",
+            "required": true,
+            "readOnly": false,
+            "options": [
+              { "value": "APPROVED", "label": "Approved" },
+              { "value": "REJECTED", "label": "Rejected" }
+            ]
+          },
+          {
+            "id": "decApprovedAmount",
+            "stockControl": "Decimal",
+            "label": "Approved Amount",
+            "binding": "tw.local.approvalDecision.approvedAmount",
+            "dataType": "Decimal",
+            "required": "when status == APPROVED",
+            "readOnly": false,
+            "hint": "Required when Approved; must be greater than current limit"
+          },
+          {
+            "id": "txtApproverComments",
+            "stockControl": "Text Area",
+            "label": "Approver Comments",
+            "binding": "tw.local.approvalDecision.approverComments",
+            "dataType": "String",
+            "required": true,
+            "readOnly": false
+          },
+          {
+            "id": "txtProcessedBy",
+            "stockControl": "Text",
+            "label": "Processed By",
+            "binding": "tw.local.approvalDecision.processedBy",
+            "dataType": "String",
+            "required": true,
+            "readOnly": false,
+            "hint": "Pre-filled with current user on load; editable if needed"
+          }
+        ]
+      }
+    ],
+    "buttons": [
+      {
+        "id": "btnComplete",
+        "label": "Complete Review",
+        "boundaryEvent": "OK",
+        "runsValidation": true,
+        "runsBeforeComplete": true
+      }
+    ]
+  },
+  "validations": [
+    {
+      "id": "VAL-STATUS-ENUM",
+      "rule": "status is APPROVED or REJECTED",
+      "source": "PDD Step 4",
+      "message": "Decision must be APPROVED or REJECTED."
+    },
+    {
+      "id": "VAL-APPROVED-AMOUNT",
+      "rule": "when APPROVED: approvedAmount > customerInfo.currentLimit",
+      "source": "Underwriter decision completeness",
+      "message": "Approved amount is required and must be greater than the current credit limit."
+    },
+    {
+      "id": "VAL-COMMENTS",
+      "rule": "approverComments is non-empty",
+      "source": "PDD Step 4 outputs",
+      "message": "Approver comments are required."
+    },
+    {
+      "id": "VAL-PROCESSED-BY",
+      "rule": "processedBy is non-empty",
+      "source": "PDD ApprovalDecision.processedBy",
+      "message": "Processed By is required."
+    }
+  ],
+  "scripts": {
+    "onLoad": "on-load.js",
+    "validate": "validate.js",
+    "beforeComplete": "before-complete.js"
+  },
+  "optionalCustomHtml": {
+    "html": "layout.html",
+    "css": "coach.css"
+  }
+}

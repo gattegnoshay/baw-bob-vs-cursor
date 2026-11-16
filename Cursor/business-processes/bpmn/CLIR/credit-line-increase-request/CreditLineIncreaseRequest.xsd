@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://CLIR/BusinessObjects" targetNamespace="http://CLIR/BusinessObjects" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <complexType name="CustomerInfo">
+    <annotation>
+      <documentation>Account-holder credit line request data. status values: SUBMITTED, IN_REVIEW, COMPLETED, ESCALATED. Validation: requestedIncrease &gt; currentLimit; annualIncome &gt; 0. creditScore range 300-850.</documentation>
+    </annotation>
+    <sequence>
+      <element name="customerID" type="string" minOccurs="1"/>
+      <element name="fullName" type="string" minOccurs="1"/>
+      <element name="creditScore" type="integer" minOccurs="1"/>
+      <element name="annualIncome" type="decimal" minOccurs="1"/>
+      <element name="currentLimit" type="decimal" minOccurs="1"/>
+      <element name="requestedIncrease" type="decimal" minOccurs="1"/>
+      <element name="status" type="string" minOccurs="1"/>
+    </sequence>
+  </complexType>
+  <complexType name="RiskAssessment">
+    <annotation>
+      <documentation>Automated risk engine output. riskLevel values: LOW_RISK, HIGH_RISK, AUTO_REJECT. status values: COMPLETE, ERROR.</documentation>
+    </annotation>
+    <sequence>
+      <element name="riskLevel" type="string" minOccurs="1"/>
+      <element name="autoApproved" type="boolean" minOccurs="1"/>
+      <element name="riskReason" type="string" minOccurs="0"/>
+      <element name="assessedDate" type="dateTime" minOccurs="0"/>
+      <element name="status" type="string" minOccurs="1"/>
+    </sequence>
+  </complexType>
+  <complexType name="ApprovalDecision">
+    <annotation>
+      <documentation>Decision record. status values: APPROVED, REJECTED, PENDING_UNDERWRITER, ESCALATED, INTEGRATION_ERROR. processedBy is user id or system service account.</documentation>
+    </annotation>
+    <sequence>
+      <element name="status" type="string" minOccurs="1"/>
+      <element name="approvedAmount" type="decimal" minOccurs="0"/>
+      <element name="approverComments" type="string" minOccurs="0"/>
+      <element name="processedBy" type="string" minOccurs="0"/>
+      <element name="processedDate" type="dateTime" minOccurs="0"/>
+    </sequence>
+  </complexType>
+</schema>

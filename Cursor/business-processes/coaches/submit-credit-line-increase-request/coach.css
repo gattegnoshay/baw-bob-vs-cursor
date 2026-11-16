@@ -1,0 +1,99 @@
+/* Submit Credit Line Increase Request — Custom HTML coach styles
+   Paste into the coach view CSS section (avoid inline style= attributes). */
+
+.clir-coach {
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color: #1a2332;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.clir-coach__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+}
+
+.clir-coach__subtitle {
+  margin: 0 0 1.25rem;
+  color: #4a5568;
+  font-size: 0.95rem;
+}
+
+.clir-coach__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem 1.25rem;
+}
+
+.clir-coach__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.clir-coach__field--full {
+  grid-column: 1 / -1;
+}
+
+.clir-coach__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.clir-coach__input {
+  border: 1px solid #c5ced9;
+  border-radius: 4px;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.95rem;
+  background: #fff;
+}
+
+.clir-coach__hint {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.clir-coach__errors {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid #b42318;
+  background: #fef3f2;
+  color: #7a271a;
+  display: none;
+}
+
+.clir-coach__errors.is-visible {
+  display: block;
+}
+
+.clir-coach__actions {
+  margin-top: 1.25rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.clir-coach__btn {
+  border: 0;
+  border-radius: 4px;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.clir-coach__btn--primary {
+  background: #0b5cab;
+  color: #fff;
+}
+
+.clir-coach__btn--secondary {
+  background: #e8eef5;
+  color: #1a2332;
+}
+
+@media (max-width: 640px) {
+  .clir-coach__grid {
+    grid-template-columns: 1fr;
+  }
+}

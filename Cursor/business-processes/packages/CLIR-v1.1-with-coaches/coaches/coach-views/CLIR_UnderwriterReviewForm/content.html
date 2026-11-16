@@ -1,0 +1,100 @@
+<div class="clir-uwr" data-coach-view="CLIR_UnderwriterReviewForm">
+  <header class="clir-uwr__header">
+    <p class="clir-uwr__eyebrow">Underwriter queue</p>
+    <h1 class="clir-uwr__title">Manual Credit Review</h1>
+    <p class="clir-uwr__subtitle">
+      Review the request and risk assessment, then record your decision.
+    </p>
+  </header>
+
+  <div class="clir-uwr__banner clir-uwr__banner--error" data-role="errors" hidden role="alert" aria-live="polite"></div>
+
+  <section class="clir-uwr__section" aria-labelledby="clir-uwr-customer-title">
+    <div class="clir-uwr__section-head">
+      <h2 id="clir-uwr-customer-title" class="clir-uwr__section-title">Customer Information</h2>
+      <span class="clir-uwr__pill">Read only</span>
+    </div>
+    <div class="clir-uwr__cards">
+      <div class="clir-uwr__card">
+        <span class="clir-uwr__meta">Customer ID</span>
+        <strong data-display="customer.customerID">—</strong>
+      </div>
+      <div class="clir-uwr__card">
+        <span class="clir-uwr__meta">Full Name</span>
+        <strong data-display="customer.fullName">—</strong>
+      </div>
+      <div class="clir-uwr__card">
+        <span class="clir-uwr__meta">Credit Score</span>
+        <strong data-display="customer.creditScore">—</strong>
+      </div>
+      <div class="clir-uwr__card">
+        <span class="clir-uwr__meta">Annual Income</span>
+        <strong data-display="customer.annualIncome">—</strong>
+      </div>
+      <div class="clir-uwr__card">
+        <span class="clir-uwr__meta">Current Limit</span>
+        <strong data-display="customer.currentLimit">—</strong>
+      </div>
+      <div class="clir-uwr__card">
+        <span class="clir-uwr__meta">Requested Limit</span>
+        <strong data-display="customer.requestedIncrease">—</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="clir-uwr__section" aria-labelledby="clir-uwr-risk-title">
+    <div class="clir-uwr__section-head">
+      <h2 id="clir-uwr-risk-title" class="clir-uwr__section-title">Risk Assessment</h2>
+      <span class="clir-uwr__pill clir-uwr__pill--warn" data-display="risk.riskLevel">HIGH_RISK</span>
+    </div>
+    <div class="clir-uwr__cards">
+      <div class="clir-uwr__card">
+        <span class="clir-uwr__meta">Auto Approved</span>
+        <strong data-display="risk.autoApproved">—</strong>
+      </div>
+      <div class="clir-uwr__card">
+        <span class="clir-uwr__meta">Assessed</span>
+        <strong data-display="risk.assessedDate">—</strong>
+      </div>
+      <div class="clir-uwr__card clir-uwr__card--wide">
+        <span class="clir-uwr__meta">Risk Reason</span>
+        <strong data-display="risk.riskReason">—</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="clir-uwr__section clir-uwr__section--edit" aria-labelledby="clir-uwr-decision-title">
+    <h2 id="clir-uwr-decision-title" class="clir-uwr__section-title">Underwriter Decision</h2>
+    <div class="clir-uwr__grid">
+      <div class="clir-uwr__field">
+        <label class="clir-uwr__label" for="clir-uwr-status">Decision</label>
+        <select class="clir-uwr__input" id="clir-uwr-status" data-field="status">
+          <option value="">Select...</option>
+          <option value="APPROVED">Approved</option>
+          <option value="REJECTED">Rejected</option>
+        </select>
+      </div>
+
+      <div class="clir-uwr__field">
+        <label class="clir-uwr__label" for="clir-uwr-amount">Approved Amount</label>
+        <input class="clir-uwr__input" id="clir-uwr-amount" type="number" min="0" step="0.01"
+               data-field="approvedAmount" />
+      </div>
+
+      <div class="clir-uwr__field clir-uwr__field--full">
+        <label class="clir-uwr__label" for="clir-uwr-comments">Approver Comments</label>
+        <textarea class="clir-uwr__input clir-uwr__textarea" id="clir-uwr-comments"
+                  data-field="approverComments" rows="4"></textarea>
+      </div>
+
+      <div class="clir-uwr__field clir-uwr__field--full">
+        <label class="clir-uwr__label" for="clir-uwr-processedBy">Processed By</label>
+        <input class="clir-uwr__input" id="clir-uwr-processedBy" type="text" data-field="processedBy" />
+      </div>
+    </div>
+  </section>
+
+  <div class="clir-uwr__actions">
+    <button type="button" class="clir-uwr__btn" data-action="complete">Complete Review</button>
+  </div>
+</div>

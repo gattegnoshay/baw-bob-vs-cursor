@@ -1,0 +1,38 @@
+{
+  "name": "CLIR Customer Info Form",
+  "acronymHint": "CLIRCIF",
+  "artifactType": "coachView",
+  "description": "Reusable Coach View component for submitting a credit line increase request. Bound to CustomerInfo.",
+  "binding": {
+    "type": "CustomerInfo",
+    "required": true
+  },
+  "configOptions": [
+    {
+      "name": "showCancelButton",
+      "type": "Boolean",
+      "default": true,
+      "description": "Show the Cancel button under the form."
+    },
+    {
+      "name": "title",
+      "type": "String",
+      "default": "Credit Line Increase Request",
+      "description": "Heading shown above the form."
+    }
+  ],
+  "eventHandlers": ["load", "view", "change", "validate"],
+  "files": {
+    "html": "content.html",
+    "css": "styles.css",
+    "load": "handlers/load.js",
+    "view": "handlers/view.js",
+    "change": "handlers/change.js",
+    "validate": "handlers/validate.js"
+  },
+  "usage": {
+    "cshs": "Submit Credit Line Increase Request",
+    "dropOnCoach": true,
+    "bindTo": "tw.local.customerInfo"
+  }
+}

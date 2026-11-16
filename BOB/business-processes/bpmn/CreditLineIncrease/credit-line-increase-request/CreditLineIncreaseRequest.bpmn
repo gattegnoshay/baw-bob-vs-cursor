@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xmi="http://www.omg.org/XMI" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://CLIR/1.0/Credit%20Line%20Increase%20Request" xmlns:bo="http://CLIR/BusinessObjects" xmi:version="2.0" exporter="generate-baw-bpmn" exporterVersion="1.0.0" id="bpmnid-7d173010-0cb5-5230-a61e-3f42117f0069" targetNamespace="http://CLIR/1.0/Credit%20Line%20Increase%20Request">
+  <bpmn:import namespace="http://CLIR/BusinessObjects" location="CreditLineIncreaseRequest.xsd" importType="http://www.w3.org/2001/XMLSchema"/>
+  <bpmn:itemDefinition id="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0" structureRef="bo:CustomerInfo"/>
+  <bpmn:itemDefinition id="bpmnid-00f87e6d-7654-51d0-b518-9c303c31a3c8" structureRef="bo:RiskAssessment"/>
+  <bpmn:itemDefinition id="bpmnid-c7b42249-4f20-5d27-b9f4-ddc3015e73d9" structureRef="bo:ApprovalDecision"/>
+  <bpmn:process id="bpmnid-589e21f6-35fb-5b9e-a614-ffc6e2784f50" name="Credit Line Increase Request" isClosed="false" processType="None">
+    <bpmn:documentation>Handles customer requests for credit limit increases. Low-risk requests are auto-approved via Core Banking REST API; high-risk requests are escalated to the Underwriter team with 24-hour SLA monitoring and boundary timer escalation. All outcomes are captured in a full audit log.</bpmn:documentation>
+    <bpmn:laneSet id="bpmnid-47f73e86-20ef-58f0-bb0b-ce8bf98a9c6e">
+      <bpmn:lane id="bpmnid-f2259e91-f91c-5ccc-a9f2-2f4464784861" name="Process Initiator (CSR or Self-Service Portal)">
+        <bpmn:flowNodeRef>bpmnid-b72e2429-567e-584d-833c-d337e8bfb082</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="bpmnid-a87c22e9-b7fa-5a4d-9f7b-29878abbaf3f" name="System">
+        <bpmn:flowNodeRef>bpmnid-d80e47c5-1cdc-5d6f-a5cc-9b440856762d</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-5078fe05-5090-5342-bcff-9284bf89637c</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-04887c14-6c98-545a-895d-98121e629c91</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-6e74360a-f431-5c7d-85a8-93ab83330232</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-daccc957-c9fb-5009-bee5-59d140104c14</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-bbe9c174-454b-5920-8649-033a09880f93</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-18a7de0f-30e6-556b-be36-aa16e885bccf</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="bpmnid-45164f5f-578c-5470-9463-d52794d639c8" name="Underwriter Team">
+        <bpmn:flowNodeRef>bpmnid-39b33035-0ca4-5844-8468-ff0203732d03</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="bpmnid-07be3627-043a-5699-9107-3b33241dd6f7" name="Manager">
+        <bpmn:flowNodeRef>bpmnid-3bc7d865-9aac-5aa3-90cb-157670473130</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="bpmnid-6547d026-31f8-50bc-908b-9ed963840714" name="Unassigned">
+        <bpmn:flowNodeRef>bpmnid-556414b4-5cb5-5e7d-acab-4ecc3b4fc5b3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-76b9288f-352a-5fd8-91e9-ac65720bbb62</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-b0bf4880-9158-5372-92b5-d143fd373735</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-79172cfd-5f03-5ed0-bfe8-ed5720f9bbe1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-12a361cb-ad07-58eb-9efc-a9e7abf13520</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-10593819-c31c-54ca-b2bf-5f4fa0f31dab</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-8a73fe31-3eb1-5c8a-9daf-e6acb821e001</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-368fa767-16a8-552e-b63b-c3b07885c4dd</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>bpmnid-fd0c5c85-7c36-5212-9061-540d2d17b907</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="bpmnid-556414b4-5cb5-5e7d-acab-4ecc3b4fc5b3" name="Credit Line Request Received">
+      <bpmn:documentation>Triggered when a CSR or customer self-service portal initiates a credit limit increase request.</bpmn:documentation>
+    </bpmn:startEvent>
+    <bpmn:userTask id="bpmnid-b72e2429-567e-584d-833c-d337e8bfb082" name="Submit Credit Line Request">
+      <bpmn:documentation>Client-Side Human Service (CSHS) coach. Coach template: clir-submit-request-coach.html (included in this ZIP). Captures: customerID, fullName, annualIncome, currentLimit, requestedIncrease, creditScore, channel. Validation rules enforced: requestedIncrease &gt; 0, currentLimit &gt;= 0, creditScore between 300-850, annualIncome &gt; 0. Output bound to tw.local.customerInfo (type: CustomerInfo). Live risk preview computes all three PDD risk rules client-side before submission. Replace submitToBAW() stub with tw.local.customerInfo.* assignments and tw.coach.finish() after import.</bpmn:documentation>
+      <bpmn:performer id="bpmnid-fdf9b560-7988-5a11-ba4a-550a87f938dd" name="Process Initiator (CSR or Self-Service Portal)"/>
+      <bpmn:ioSpecification id="bpmnid-6377a655-bfe7-52d4-b5f3-d1849df1663a">
+        <bpmn:dataOutput id="bpmnid-f1a2ada5-1a66-5c3e-b8ea-28c91fef20b9" name="customerInfo" itemSubjectRef="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0"/>
+        <bpmn:inputSet id="bpmnid-cfdbeb75-5b2f-59d4-a476-78759c1b0803"/>
+        <bpmn:outputSet id="bpmnid-b0f3ea27-2c65-58b1-bb24-c53f8c559f1f">
+          <bpmn:dataOutputRefs>bpmnid-f1a2ada5-1a66-5c3e-b8ea-28c91fef20b9</bpmn:dataOutputRefs>
+        </bpmn:outputSet>
+      </bpmn:ioSpecification>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="bpmnid-d80e47c5-1cdc-5d6f-a5cc-9b440856762d" name="Risk Assessment Engine">
+      <bpmn:documentation>Evaluates credit risk using three rules: (1) if creditScore &lt; 650 -&gt; status=REJECTED, riskLevel=AUTO_REJECT; (2) if currentLimit &gt; annualIncome * 0.50 -&gt; riskLevel=HIGH_RISK; (3) if requestedIncrease &gt; (annualIncome + currentLimit) * 0.30 -&gt; riskLevel=HIGH_RISK. Default: riskLevel=LOW_RISK, autoApproved=true. Writes to tw.local.riskAssessment. Reads from tw.local.customerInfo.</bpmn:documentation>
+      <bpmn:performer id="bpmnid-23aa9b42-72f7-501e-8642-f3840b1542d7" name="System"/>
+      <bpmn:ioSpecification id="bpmnid-d320235e-b5ec-55d7-b120-be34b53adaad">
+        <bpmn:dataInput id="bpmnid-3550cb33-7f97-5c5b-ac62-fd3d881fa7ff" name="customerInfo" itemSubjectRef="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0"/>
+        <bpmn:dataOutput id="bpmnid-08db366d-9dad-5749-8594-bc362ded953c" name="riskAssessment" itemSubjectRef="bpmnid-00f87e6d-7654-51d0-b518-9c303c31a3c8"/>
+        <bpmn:inputSet id="bpmnid-65d951c0-c656-5996-b26c-dcb2d119e161">
+          <bpmn:dataInputRefs>bpmnid-3550cb33-7f97-5c5b-ac62-fd3d881fa7ff</bpmn:dataInputRefs>
+        </bpmn:inputSet>
+        <bpmn:outputSet id="bpmnid-afdc7342-d49b-5264-9c45-6181260893ca">
+          <bpmn:dataOutputRefs>bpmnid-08db366d-9dad-5749-8594-bc362ded953c</bpmn:dataOutputRefs>
+        </bpmn:outputSet>
+      </bpmn:ioSpecification>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="bpmnid-76b9288f-352a-5fd8-91e9-ac65720bbb62" name="Risk Level?" gatewayDirection="Unspecified" default="bpmnid-183d7e06-c708-55bd-aa87-9127d5e6ef0a">
+      <bpmn:documentation>Routes on tw.local.riskAssessment.riskLevel. LOW_RISK proceeds to auto-approval path; AUTO_REJECT goes directly to audit and end; HIGH_RISK goes to manual underwriter review.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="bpmnid-5078fe05-5090-5342-bcff-9284bf89637c" name="Update Core Banking Limit">
+      <bpmn:documentation>External REST integration: POST https://api.bank.internal/v1/limits/update. Payload: {customerId, requestedLimit, approvalStatus, processInstanceId}. Maps HTTP 200 txStatus -&gt; tw.local.approvalDecision.status. Used on LOW_RISK auto-approval path.</bpmn:documentation>
+      <bpmn:performer id="bpmnid-a198d9f1-4857-59bf-983a-ed9385a2d20b" name="System"/>
+      <bpmn:ioSpecification id="bpmnid-9b0986e5-78bc-5aec-a648-e1056bbdbfe5">
+        <bpmn:dataInput id="bpmnid-602bd0ef-e040-5856-9093-31b4c3234c42" name="customerInfo" itemSubjectRef="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0"/>
+        <bpmn:dataOutput id="bpmnid-b3c5d61e-0d25-58f9-8899-d305d2db4d9f" name="approvalDecision" itemSubjectRef="bpmnid-c7b42249-4f20-5d27-b9f4-ddc3015e73d9"/>
+        <bpmn:inputSet id="bpmnid-30c260ff-b03f-55c2-9ea4-d3185e4a2906">
+          <bpmn:dataInputRefs>bpmnid-602bd0ef-e040-5856-9093-31b4c3234c42</bpmn:dataInputRefs>
+        </bpmn:inputSet>
+        <bpmn:outputSet id="bpmnid-04020293-779d-5bf0-bb65-5f527f507590">
+          <bpmn:dataOutputRefs>bpmnid-b3c5d61e-0d25-58f9-8899-d305d2db4d9f</bpmn:dataOutputRefs>
+        </bpmn:outputSet>
+      </bpmn:ioSpecification>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="bpmnid-04887c14-6c98-545a-895d-98121e629c91" name="Dispatch Audit Event Auto Approved">
+      <bpmn:documentation>Server Script service flow. Formats JSON audit log: {timestamp, processInstanceId, customerId, finalDecision: APPROVED, riskLevel: LOW_RISK}. Outputs to system log or HTTP audit endpoint.</bpmn:documentation>
+      <bpmn:performer id="bpmnid-02053647-f0a7-5ebb-8a67-da11a692caa2" name="System"/>
+      <bpmn:ioSpecification id="bpmnid-e7afc1b6-e54f-5f66-89ab-b005e183634a">
+        <bpmn:dataInput id="bpmnid-76b1ccc7-4cea-5b96-94ea-41b2dd06abe5" name="customerInfo" itemSubjectRef="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0"/>
+        <bpmn:dataInput id="bpmnid-3e96c3ea-bbcc-5586-ba80-417e1f2e38ae" name="riskAssessment" itemSubjectRef="bpmnid-00f87e6d-7654-51d0-b518-9c303c31a3c8"/>
+        <bpmn:dataInput id="bpmnid-e0f14ec2-6ce3-57a5-b022-673d82810c07" name="approvalDecision" itemSubjectRef="bpmnid-c7b42249-4f20-5d27-b9f4-ddc3015e73d9"/>
+        <bpmn:inputSet id="bpmnid-48fcc947-dd23-5a9a-8f61-65d99faa721f">
+          <bpmn:dataInputRefs>bpmnid-76b1ccc7-4cea-5b96-94ea-41b2dd06abe5</bpmn:dataInputRefs>
+          <bpmn:dataInputRefs>bpmnid-3e96c3ea-bbcc-5586-ba80-417e1f2e38ae</bpmn:dataInputRefs>
+          <bpmn:dataInputRefs>bpmnid-e0f14ec2-6ce3-57a5-b022-673d82810c07</bpmn:dataInputRefs>
+        </bpmn:inputSet>
+        <bpmn:outputSet id="bpmnid-c6905aff-4a5f-50a0-b747-9734d20e3f8f"/>
+      </bpmn:ioSpecification>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="bpmnid-6e74360a-f431-5c7d-85a8-93ab83330232" name="Dispatch Audit Event Auto Rejected">
+      <bpmn:documentation>Server Script service flow. Formats JSON audit log: {timestamp, processInstanceId, customerId, finalDecision: REJECTED, riskLevel: AUTO_REJECT, reason: riskAssessment.riskReason}. Outputs to system log or HTTP audit endpoint.</bpmn:documentation>
+      <bpmn:performer id="bpmnid-e7725283-91d6-5ee3-9e27-95bf1a8c4789" name="System"/>
+      <bpmn:ioSpecification id="bpmnid-996656f9-450c-5ddd-9a19-fe68953cd4bd">
+        <bpmn:dataInput id="bpmnid-e778c88b-9fef-5e5c-99f3-e0bd664219f5" name="customerInfo" itemSubjectRef="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0"/>
+        <bpmn:dataInput id="bpmnid-b1940898-3875-5010-bd84-6c1d8950260d" name="riskAssessment" itemSubjectRef="bpmnid-00f87e6d-7654-51d0-b518-9c303c31a3c8"/>
+        <bpmn:inputSet id="bpmnid-c78160a8-06f3-5788-aa21-62f6a50f1f4c">
+          <bpmn:dataInputRefs>bpmnid-e778c88b-9fef-5e5c-99f3-e0bd664219f5</bpmn:dataInputRefs>
+          <bpmn:dataInputRefs>bpmnid-b1940898-3875-5010-bd84-6c1d8950260d</bpmn:dataInputRefs>
+        </bpmn:inputSet>
+        <bpmn:outputSet id="bpmnid-e0c4eab9-f25b-54f9-93ac-4bf441faebb4"/>
+      </bpmn:ioSpecification>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="bpmnid-39b33035-0ca4-5844-8468-ff0203732d03" name="Underwriter Manual Review">
+      <bpmn:documentation>CSHS Coach assigned to Underwriter_Group team. Coach template: clir-underwriter-review-coach.html (included in this ZIP). Inputs (read-only display): tw.local.customerInfo and tw.local.riskAssessment. Captures outputs: approvalDecision.status (APPROVED or REJECTED), approvedAmount, approverComments. SLA: 24 hours — live countdown displayed in coach; coach shows SLA breach state automatically. Non-interrupting timer boundary fires at 24h to send manager escalation without terminating the task. Replace submitDecisionToBAW() stub with tw.local.approvalDecision.* assignments and tw.coach.finish() after import. Set processedBy = tw.system.user.name.</bpmn:documentation>
+      <bpmn:performer id="bpmnid-87c8043f-2fc4-5490-9039-19149fcfe0cb" name="Underwriter Team"/>
+      <bpmn:ioSpecification id="bpmnid-1a3edebf-fc74-5b48-8cf9-0ba006820503">
+        <bpmn:dataInput id="bpmnid-fcab344a-c518-5685-9f84-25cc738086fc" name="customerInfo" itemSubjectRef="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0"/>
+        <bpmn:dataInput id="bpmnid-264dd0ca-b64a-5708-957e-90de4b6dccd8" name="riskAssessment" itemSubjectRef="bpmnid-00f87e6d-7654-51d0-b518-9c303c31a3c8"/>
+        <bpmn:dataOutput id="bpmnid-44a3bf93-e97a-5657-a44e-2e6b0ad58eaa" name="approvalDecision" itemSubjectRef="bpmnid-c7b42249-4f20-5d27-b9f4-ddc3015e73d9"/>
+        <bpmn:inputSet id="bpmnid-362e84a5-b9ee-565f-a9af-22b70c3af663">
+          <bpmn:dataInputRefs>bpmnid-fcab344a-c518-5685-9f84-25cc738086fc</bpmn:dataInputRefs>
+          <bpmn:dataInputRefs>bpmnid-264dd0ca-b64a-5708-957e-90de4b6dccd8</bpmn:dataInputRefs>
+        </bpmn:inputSet>
+        <bpmn:outputSet id="bpmnid-b91564df-6e23-569d-adcd-aff82e4d58a7">
+          <bpmn:dataOutputRefs>bpmnid-44a3bf93-e97a-5657-a44e-2e6b0ad58eaa</bpmn:dataOutputRefs>
+        </bpmn:outputSet>
+      </bpmn:ioSpecification>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="bpmnid-b0bf4880-9158-5372-92b5-d143fd373735" name="24h SLA Overdue" attachedToRef="tns:bpmnid-39b33035-0ca4-5844-8468-ff0203732d03" cancelActivity="false">
+      <bpmn:documentation>Non-interrupting timer boundary event. Fires after 24 hours if the underwriter has not completed their review. Triggers manager escalation notification without cancelling the underwriter task.</bpmn:documentation>
+      <bpmn:timerEventDefinition id="bpmnid-8f8fe012-8b00-53ad-a396-6ebd9f8d393a"/>
+    </bpmn:boundaryEvent>
+    <bpmn:serviceTask id="bpmnid-3bc7d865-9aac-5aa3-90cb-157670473130" name="Send Manager Escalation Notification">
+      <bpmn:documentation>Sends escalation email to manager group when the 24h SLA is breached. Includes processInstanceId, customerId, elapsed time, and current task assignee. Does not terminate the underwriter review task.</bpmn:documentation>
+      <bpmn:performer id="bpmnid-b4f9e9a5-4049-559a-8a92-be1f1fdbf325" name="Manager"/>
+      <bpmn:ioSpecification id="bpmnid-4590b30f-2caa-54e5-8583-7d118a0e9c20">
+        <bpmn:dataInput id="bpmnid-8fedc748-10da-57c8-93b3-f7d887441e16" name="customerInfo" itemSubjectRef="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0"/>
+        <bpmn:inputSet id="bpmnid-62a2593b-4094-5e18-bfa0-499ebce5cc3e">
+          <bpmn:dataInputRefs>bpmnid-8fedc748-10da-57c8-93b3-f7d887441e16</bpmn:dataInputRefs>
+        </bpmn:inputSet>
+        <bpmn:outputSet id="bpmnid-64088da4-bf27-5078-8e72-280ffc3244f7"/>
+      </bpmn:ioSpecification>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="bpmnid-79172cfd-5f03-5ed0-bfe8-ed5720f9bbe1" name="Underwriter Decision?" gatewayDirection="Unspecified" default="bpmnid-8fff7b77-50f6-5767-b454-d6275963b6ef">
+      <bpmn:documentation>Routes on tw.local.approvalDecision.status. APPROVED proceeds to Core Banking update; REJECTED goes directly to audit event.</bpmn:documentation>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="bpmnid-daccc957-c9fb-5009-bee5-59d140104c14" name="Update Core Banking Limit Underwriter">
+      <bpmn:documentation>External REST integration: POST https://api.bank.internal/v1/limits/update. Payload: {customerId, approvedAmount, approvalStatus, processInstanceId}. Maps HTTP 200 txStatus -&gt; tw.local.approvalDecision.status. Used on underwriter-approved path.</bpmn:documentation>
+      <bpmn:performer id="bpmnid-4a76009c-b08b-5927-9c73-d5bc1190e251" name="System"/>
+      <bpmn:ioSpecification id="bpmnid-750b56bb-07b9-5887-94c3-4a512e72d8be">
+        <bpmn:dataInput id="bpmnid-f9af6847-95a8-5f2c-b2dc-5000a733282b" name="customerInfo" itemSubjectRef="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0"/>
+        <bpmn:dataOutput id="bpmnid-22306318-bce3-5405-95d4-e16ff4840196" name="approvalDecision" itemSubjectRef="bpmnid-c7b42249-4f20-5d27-b9f4-ddc3015e73d9"/>
+        <bpmn:inputSet id="bpmnid-bdca5e35-2140-5942-9d99-873586ec6f99">
+          <bpmn:dataInputRefs>bpmnid-f9af6847-95a8-5f2c-b2dc-5000a733282b</bpmn:dataInputRefs>
+        </bpmn:inputSet>
+        <bpmn:outputSet id="bpmnid-58c509cd-f77c-5562-9f4d-1fa975d070fd">
+          <bpmn:dataOutputRefs>bpmnid-22306318-bce3-5405-95d4-e16ff4840196</bpmn:dataOutputRefs>
+        </bpmn:outputSet>
+      </bpmn:ioSpecification>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="bpmnid-bbe9c174-454b-5920-8649-033a09880f93" name="Dispatch Audit Event Underwriter Approved">
+      <bpmn:documentation>Server Script service flow. Formats JSON audit log: {timestamp, processInstanceId, customerId, finalDecision: APPROVED, riskLevel: HIGH_RISK, approver: approvalDecision.processedBy, approvedAmount}. Outputs to system log or HTTP audit endpoint.</bpmn:documentation>
+      <bpmn:performer id="bpmnid-20c0415b-eb3a-5399-bd9c-d326a5866603" name="System"/>
+      <bpmn:ioSpecification id="bpmnid-0582a1cb-8a8c-5f24-a487-3e8936887131">
+        <bpmn:dataInput id="bpmnid-282a4218-21d4-5237-a232-0c41d8ac319e" name="customerInfo" itemSubjectRef="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0"/>
+        <bpmn:dataInput id="bpmnid-4a324c51-55f4-5ae9-9c0e-8148d2077dd5" name="riskAssessment" itemSubjectRef="bpmnid-00f87e6d-7654-51d0-b518-9c303c31a3c8"/>
+        <bpmn:dataInput id="bpmnid-294d7838-e408-5ed8-acbb-d94d6ed3a627" name="approvalDecision" itemSubjectRef="bpmnid-c7b42249-4f20-5d27-b9f4-ddc3015e73d9"/>
+        <bpmn:inputSet id="bpmnid-fdf13c7f-73c5-5fe1-8fa8-3e12ea459584">
+          <bpmn:dataInputRefs>bpmnid-282a4218-21d4-5237-a232-0c41d8ac319e</bpmn:dataInputRefs>
+          <bpmn:dataInputRefs>bpmnid-4a324c51-55f4-5ae9-9c0e-8148d2077dd5</bpmn:dataInputRefs>
+          <bpmn:dataInputRefs>bpmnid-294d7838-e408-5ed8-acbb-d94d6ed3a627</bpmn:dataInputRefs>
+        </bpmn:inputSet>
+        <bpmn:outputSet id="bpmnid-b1ab5402-aca9-5f0f-ad8e-537eef2f8c9d"/>
+      </bpmn:ioSpecification>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="bpmnid-18a7de0f-30e6-556b-be36-aa16e885bccf" name="Dispatch Audit Event Underwriter Rejected">
+      <bpmn:documentation>Server Script service flow. Formats JSON audit log: {timestamp, processInstanceId, customerId, finalDecision: REJECTED, riskLevel: HIGH_RISK, approver: approvalDecision.processedBy, reason: approvalDecision.approverComments}. Outputs to system log or HTTP audit endpoint.</bpmn:documentation>
+      <bpmn:performer id="bpmnid-c48151cd-15fe-5d5a-8150-967b303620d4" name="System"/>
+      <bpmn:ioSpecification id="bpmnid-f8e09eb3-12ea-530f-b9eb-620d930a321c">
+        <bpmn:dataInput id="bpmnid-5e7a593c-bbd8-55d6-ad4e-2be95562bc52" name="customerInfo" itemSubjectRef="bpmnid-04681c88-3ff2-54f6-b48f-a98e3868c5c0"/>
+        <bpmn:dataInput id="bpmnid-52c35c86-d8a3-57f7-8564-28c53eeba359" name="riskAssessment" itemSubjectRef="bpmnid-00f87e6d-7654-51d0-b518-9c303c31a3c8"/>
+        <bpmn:dataInput id="bpmnid-b64adfe4-06c1-53a1-94a8-1ac68e54e81f" name="approvalDecision" itemSubjectRef="bpmnid-c7b42249-4f20-5d27-b9f4-ddc3015e73d9"/>
+        <bpmn:inputSet id="bpmnid-1da58752-dd8a-5ce7-80b2-d12600b622cc">
+          <bpmn:dataInputRefs>bpmnid-5e7a593c-bbd8-55d6-ad4e-2be95562bc52</bpmn:dataInputRefs>
+          <bpmn:dataInputRefs>bpmnid-52c35c86-d8a3-57f7-8564-28c53eeba359</bpmn:dataInputRefs>
+          <bpmn:dataInputRefs>bpmnid-b64adfe4-06c1-53a1-94a8-1ac68e54e81f</bpmn:dataInputRefs>
+        </bpmn:inputSet>
+        <bpmn:outputSet id="bpmnid-f5f8643e-4c80-53ff-9e36-b6d60d2c23e3"/>
+      </bpmn:ioSpecification>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="bpmnid-12a361cb-ad07-58eb-9efc-a9e7abf13520" name="Auto Approved">
+      <bpmn:documentation>Process ends successfully with automatic approval. Core Banking limit updated.</bpmn:documentation>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="bpmnid-10593819-c31c-54ca-b2bf-5f4fa0f31dab" name="Auto Rejected">
+      <bpmn:documentation>Process ends with automatic rejection due to credit score below minimum threshold (&lt; 650).</bpmn:documentation>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="bpmnid-8a73fe31-3eb1-5c8a-9daf-e6acb821e001" name="Underwriter Approved">
+      <bpmn:documentation>Process ends with underwriter approval. Core Banking limit updated and audit logged.</bpmn:documentation>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="bpmnid-368fa767-16a8-552e-b63b-c3b07885c4dd" name="Underwriter Rejected">
+      <bpmn:documentation>Process ends with underwriter rejection. Audit event logged with reason and approver comments.</bpmn:documentation>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="bpmnid-fd0c5c85-7c36-5212-9061-540d2d17b907" name="Escalation Sent">
+      <bpmn:documentation>Escalation notification dispatched to manager. Underwriter task continues independently.</bpmn:documentation>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="bpmnid-9bc4c18d-c690-5b6b-a3bd-4081715e46c1" name="To Submit Credit Line Request" sourceRef="bpmnid-556414b4-5cb5-5e7d-acab-4ecc3b4fc5b3" targetRef="bpmnid-b72e2429-567e-584d-833c-d337e8bfb082"/>
+    <bpmn:sequenceFlow id="bpmnid-10e0a328-fc48-541f-969d-198d638b8d82" name="To Risk Assessment Engine" sourceRef="bpmnid-b72e2429-567e-584d-833c-d337e8bfb082" targetRef="bpmnid-d80e47c5-1cdc-5d6f-a5cc-9b440856762d"/>
+    <bpmn:sequenceFlow id="bpmnid-1631d403-7c3e-5e47-8a2d-0c5df21b24ee" name="To Risk Level?" sourceRef="bpmnid-d80e47c5-1cdc-5d6f-a5cc-9b440856762d" targetRef="bpmnid-76b9288f-352a-5fd8-91e9-ac65720bbb62"/>
+    <bpmn:sequenceFlow id="bpmnid-42b6db9a-d147-5ac8-984c-ce06019f940b" name="LOW_RISK" sourceRef="bpmnid-76b9288f-352a-5fd8-91e9-ac65720bbb62" targetRef="bpmnid-5078fe05-5090-5342-bcff-9284bf89637c">
+      <bpmn:conditionExpression id="bpmnid-8f8e57e5-55e0-54fb-9184-21cbd3d28441">tw.local.riskAssessment.riskLevel == "LOW_RISK"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="bpmnid-a48e4945-70e4-5077-a0e6-ce8eb96c0dcb" name="AUTO_REJECT" sourceRef="bpmnid-76b9288f-352a-5fd8-91e9-ac65720bbb62" targetRef="bpmnid-6e74360a-f431-5c7d-85a8-93ab83330232">
+      <bpmn:conditionExpression id="bpmnid-3ed302ff-68d6-5ed2-ba84-7d978b600134">tw.local.riskAssessment.riskLevel == "AUTO_REJECT"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="bpmnid-183d7e06-c708-55bd-aa87-9127d5e6ef0a" name="HIGH_RISK" sourceRef="bpmnid-76b9288f-352a-5fd8-91e9-ac65720bbb62" targetRef="bpmnid-39b33035-0ca4-5844-8468-ff0203732d03"/>
+    <bpmn:sequenceFlow id="bpmnid-ab4de0a0-431a-5d13-8354-91c9dd7a3996" name="To Dispatch Audit Event Auto Approved" sourceRef="bpmnid-5078fe05-5090-5342-bcff-9284bf89637c" targetRef="bpmnid-04887c14-6c98-545a-895d-98121e629c91"/>
+    <bpmn:sequenceFlow id="bpmnid-4e318378-837f-542c-8b6c-0b6311af45d6" name="To Auto Approved" sourceRef="bpmnid-04887c14-6c98-545a-895d-98121e629c91" targetRef="bpmnid-12a361cb-ad07-58eb-9efc-a9e7abf13520"/>
+    <bpmn:sequenceFlow id="bpmnid-4eb69298-686a-51cd-a293-0c13db474105" name="To Auto Rejected" sourceRef="bpmnid-6e74360a-f431-5c7d-85a8-93ab83330232" targetRef="bpmnid-10593819-c31c-54ca-b2bf-5f4fa0f31dab"/>
+    <bpmn:sequenceFlow id="bpmnid-b390bdca-6785-5f6c-bddb-b1189e29cc4b" name="To Underwriter Decision?" sourceRef="bpmnid-39b33035-0ca4-5844-8468-ff0203732d03" targetRef="bpmnid-79172cfd-5f03-5ed0-bfe8-ed5720f9bbe1"/>
+    <bpmn:sequenceFlow id="bpmnid-8502897e-f3ee-5829-a510-9d134ddec205" name="To Send Manager Escalation Notification" sourceRef="bpmnid-b0bf4880-9158-5372-92b5-d143fd373735" targetRef="bpmnid-3bc7d865-9aac-5aa3-90cb-157670473130"/>
+    <bpmn:sequenceFlow id="bpmnid-e22c1ef3-f654-5123-8f11-ab3490b9c8a6" name="To Escalation Sent" sourceRef="bpmnid-3bc7d865-9aac-5aa3-90cb-157670473130" targetRef="bpmnid-fd0c5c85-7c36-5212-9061-540d2d17b907"/>
+    <bpmn:sequenceFlow id="bpmnid-10078add-0bca-5c3c-bd17-83c39e53fbae" name="APPROVED" sourceRef="bpmnid-79172cfd-5f03-5ed0-bfe8-ed5720f9bbe1" targetRef="bpmnid-daccc957-c9fb-5009-bee5-59d140104c14">
+      <bpmn:conditionExpression id="bpmnid-07c8099e-d2f7-5e9d-a867-61d07a68030c">tw.local.approvalDecision.status == "APPROVED"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="bpmnid-8fff7b77-50f6-5767-b454-d6275963b6ef" name="REJECTED" sourceRef="bpmnid-79172cfd-5f03-5ed0-bfe8-ed5720f9bbe1" targetRef="bpmnid-18a7de0f-30e6-556b-be36-aa16e885bccf"/>
+    <bpmn:sequenceFlow id="bpmnid-1019e867-c69e-5436-a2b8-14b5cbd317f9" name="To Dispatch Audit Event Underwriter Approved" sourceRef="bpmnid-daccc957-c9fb-5009-bee5-59d140104c14" targetRef="bpmnid-bbe9c174-454b-5920-8649-033a09880f93"/>
+    <bpmn:sequenceFlow id="bpmnid-390023b3-2d01-5386-a226-a4b56a171066" name="To Underwriter Approved" sourceRef="bpmnid-bbe9c174-454b-5920-8649-033a09880f93" targetRef="bpmnid-8a73fe31-3eb1-5c8a-9daf-e6acb821e001"/>
+    <bpmn:sequenceFlow id="bpmnid-08a7fe39-4479-5ad2-b9c6-173a25c0b48c" name="To Underwriter Rejected" sourceRef="bpmnid-18a7de0f-30e6-556b-be36-aa16e885bccf" targetRef="bpmnid-368fa767-16a8-552e-b63b-c3b07885c4dd"/>
+  </bpmn:process>
+</bpmn:definitions>

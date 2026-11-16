@@ -1,0 +1,67 @@
+<!--
+  Optional Custom HTML coach view for Submit Credit Line Increase Request.
+  Prefer stock WebPD controls bound to tw.local.customerInfo.* (see coach.spec.json).
+  Use this only if you need a single Custom HTML surface.
+
+  Bind each input via coach view binding / data-binding conventions in WebPD,
+  or wire change handlers to tw.local.customerInfo in the view script.
+  Keep CSS in coach.css (CSS tab) — do not add inline style attributes.
+-->
+<div class="clir-coach" role="form" aria-labelledby="clir-submit-title">
+  <h1 id="clir-submit-title" class="clir-coach__title">Credit Line Increase Request</h1>
+  <p class="clir-coach__subtitle">
+    Enter the account holder details and the requested credit limit.
+  </p>
+
+  <div id="clir-submit-errors" class="clir-coach__errors" role="alert" aria-live="polite"></div>
+
+  <div class="clir-coach__grid">
+    <div class="clir-coach__field">
+      <label class="clir-coach__label" for="customerID">Customer ID</label>
+      <input class="clir-coach__input" id="customerID" name="customerID" type="text"
+             data-binding="tw.local.customerInfo.customerID" required />
+    </div>
+
+    <div class="clir-coach__field">
+      <label class="clir-coach__label" for="fullName">Full Name</label>
+      <input class="clir-coach__input" id="fullName" name="fullName" type="text"
+             data-binding="tw.local.customerInfo.fullName" required />
+    </div>
+
+    <div class="clir-coach__field">
+      <label class="clir-coach__label" for="creditScore">Credit Score</label>
+      <input class="clir-coach__input" id="creditScore" name="creditScore" type="number"
+             min="300" max="850" data-binding="tw.local.customerInfo.creditScore" required />
+      <span class="clir-coach__hint">Valid range: 300 – 850</span>
+    </div>
+
+    <div class="clir-coach__field">
+      <label class="clir-coach__label" for="annualIncome">Annual Income</label>
+      <input class="clir-coach__input" id="annualIncome" name="annualIncome" type="number"
+             min="0" step="0.01" data-binding="tw.local.customerInfo.annualIncome" required />
+      <span class="clir-coach__hint">Must be greater than 0</span>
+    </div>
+
+    <div class="clir-coach__field">
+      <label class="clir-coach__label" for="currentLimit">Current Credit Limit</label>
+      <input class="clir-coach__input" id="currentLimit" name="currentLimit" type="number"
+             min="0" step="0.01" data-binding="tw.local.customerInfo.currentLimit" required />
+    </div>
+
+    <div class="clir-coach__field">
+      <label class="clir-coach__label" for="requestedIncrease">Requested Credit Limit</label>
+      <input class="clir-coach__input" id="requestedIncrease" name="requestedIncrease" type="number"
+             min="0" step="0.01" data-binding="tw.local.customerInfo.requestedIncrease" required />
+      <span class="clir-coach__hint">Must be greater than current limit</span>
+    </div>
+  </div>
+
+  <div class="clir-coach__actions">
+    <button type="button" class="clir-coach__btn clir-coach__btn--primary" id="btnSubmit">
+      Submit Request
+    </button>
+    <button type="button" class="clir-coach__btn clir-coach__btn--secondary" id="btnCancel">
+      Cancel
+    </button>
+  </div>
+</div>
