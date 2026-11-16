@@ -26,12 +26,22 @@ node "$env:USERPROFILE\.cursor\skills-for-copilot-studio\scripts\schema-lookup.b
 # Repeat for each *.mcs.yml except settings.mcs.yml (no root kind by design)
 ```
 
+## Knowledge source URL (important)
+
+When adding this repo as a Copilot / Copilot Studio **knowledge source**, use the **repository root only**:
+
+- Correct: `https://github.com/gattegnoshay/baw-bob-vs-cursor`
+- Incorrect (too deeply nested): `https://github.com/gattegnoshay/baw-bob-vs-cursor/tree/main/copilot-agents`
+
+Nested `/tree/...` paths are rejected. Agent YAML under `copilot-agents/` is still discovered from the root index.
+
 ## Import into Copilot Studio
 
 1. Create two empty agents in Copilot Studio (or clone shells).
 2. Copy or sync these YAML trees into the cloned agent workspaces (or use Copilot Studio / VS Code extension authoring against this folder).
 3. Attach file knowledge from `assets/` in the Copilot Studio UI if you want the markdown packs indexed beyond instructions.
-4. Push/publish from the Copilot Studio extension when connected to your environment.
+4. For web/GitHub knowledge, add `https://github.com/gattegnoshay/baw-bob-vs-cursor` (root).
+5. Push/publish from the Copilot Studio extension when connected to your environment.
 
 ## Source skills
 

@@ -1,0 +1,6 @@
+# Name: BAW Skills GitHub Repo
+# Knowledge from this project's public GitHub repository (use repo ROOT only — nested /tree/ paths are rejected as knowledge sources).
+kind: KnowledgeSourceConfiguration
+source:
+  kind: PublicSiteSearchSource
+  site: https://github.com/gattegnoshay/baw-bob-vs-cursor
