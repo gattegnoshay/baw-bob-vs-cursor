@@ -1,17 +1,7 @@
 ﻿# Copilot Studio skill upload packages
 
-Upload these zips into a **Microsoft Copilot harness** agent via **Build > Skills > Upload skill**.
+**Path depth rule:** Copilot Studio rejects zips with paths nested more than **3 levels** (e.g. `skill/folder/file` is OK; `skill/a/b/c/file` is not).
 
-## Folders
+These zips are flattened accordingly. Large nested template trees (e.g. BaseTWX) are omitted; full sources stay in the GitHub `behaviors/` folders.
 
-| Folder | Agent | Count |
-|--------|--------|------:|
-| `ibm-baw-author/` | IBM BAW Author | 16 |
-| `ibm-baw-admin/` | IBM BAW Admin | 9 |
-
-Each zip contains one skill folder with `SKILL.md` (quoted YAML frontmatter) plus references/scripts/assets. `*.mcs.yml` sidecars are excluded.
-
-## Source repos
-
-- https://github.com/gattegnoshay/ibm-baw-author-copilot
-- https://github.com/gattegnoshay/ibm-baw-admin-copilot
+Upload via **Build > Skills > Upload skill**.
