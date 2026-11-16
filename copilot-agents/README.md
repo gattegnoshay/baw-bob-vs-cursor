@@ -26,14 +26,16 @@ node "$env:USERPROFILE\.cursor\skills-for-copilot-studio\scripts\schema-lookup.b
 # Repeat for each *.mcs.yml except settings.mcs.yml (no root kind by design)
 ```
 
-## Knowledge source URL (important)
+## Dedicated public repos (one per agent)
 
-When adding this repo as a Copilot / Copilot Studio **knowledge source**, use the **repository root only**:
+Each agent is published at **repo root** (required for Copilot knowledge sources):
 
-- Correct: `https://github.com/gattegnoshay/baw-bob-vs-cursor`
-- Incorrect (too deeply nested): `https://github.com/gattegnoshay/baw-bob-vs-cursor/tree/main/copilot-agents`
+| Agent | Repository (use as knowledge source) |
+|-------|--------------------------------------|
+| IBM BAW Author | https://github.com/gattegnoshay/ibm-baw-author-copilot |
+| IBM BAW Admin | https://github.com/gattegnoshay/ibm-baw-admin-copilot |
 
-Nested `/tree/...` paths are rejected. Agent YAML under `copilot-agents/` is still discovered from the root index.
+Do **not** use nested `/tree/...` paths.
 
 ## Import into Copilot Studio
 
